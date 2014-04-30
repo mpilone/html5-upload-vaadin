@@ -1,5 +1,7 @@
 package org.mpilone.vaadin;
 
+import org.mpilone.vaadin.upload.plupload.Plupload;
+
 import static java.lang.String.format;
 import static org.mpilone.vaadin.StyleConstants.FULL_WIDTH;
 
@@ -171,7 +173,6 @@ public class PluploadDemo extends HorizontalLayout {
 
     final Plupload upload = new Plupload();
     upload.setChunkSize(256 * 1024);
-    upload.setMaxRetryBufferSize((int) (upload.getChunkSize() * 1.2));
     upload.setMaxFileSize(500 * 1024 * 1024);
     upload.setMaxRetries(2);
     upload.setButtonCaption("Upload File");
@@ -181,8 +182,8 @@ public class PluploadDemo extends HorizontalLayout {
       @Override
       public void uploadStarted(Plupload.StartedEvent evt) {
         log("Upload of file %s started with content size %d using "
-            + "runtime %s.", evt.getFilename(), evt.getContentLength(), evt.
-            getRuntime());
+            + "runtime %s.", evt.getFilename(), evt.getContentLength(), upload.
+            getSelectedRuntime());
 
         upload.setEnabled(false);
       }

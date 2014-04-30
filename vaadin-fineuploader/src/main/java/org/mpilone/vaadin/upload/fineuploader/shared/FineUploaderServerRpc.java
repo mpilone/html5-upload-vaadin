@@ -11,8 +11,6 @@ import com.vaadin.shared.communication.ServerRpc;
  */
 public interface FineUploaderServerRpc extends ServerRpc {
 
-  //void onUploadFile(int id, String name);
-
   void onError(Integer id, String name, String errorReason);
 
   void onComplete(int id, String name);
@@ -20,6 +18,4 @@ public interface FineUploaderServerRpc extends ServerRpc {
   void onInit(String runtime);
 
   void onProgress(int id, String name, int uploadedBytes, int totalBytes);
-
-  //void onStateChanged(int state);
 }

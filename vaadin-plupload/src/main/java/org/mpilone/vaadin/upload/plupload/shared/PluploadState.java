@@ -1,6 +1,6 @@
-package org.mpilone.vaadin.shared;
+package org.mpilone.vaadin.upload.plupload.shared;
 
-import org.mpilone.vaadin.Plupload;
+import org.mpilone.vaadin.upload.plupload.Plupload;
 
 import com.vaadin.shared.ui.JavaScriptComponentState;
 
@@ -23,6 +23,12 @@ public class PluploadState extends JavaScriptComponentState {
    * uploading.
    */
   public boolean interruptUpload = false;
+
+  /**
+   * The flag which indicates if a value changed in the component that will
+   * require a complete rebuild of the client side component.
+   */
+  public boolean rebuild;
 
   /**
    * Page URL to where the files will be uploaded to.

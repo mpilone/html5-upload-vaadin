@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vaadin.server.RequestHandler;
 import com.vaadin.ui.AbstractJavaScriptComponent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Upload;
@@ -38,6 +39,43 @@ public abstract class AbstractHtml5Uploader extends AbstractJavaScriptComponent 
   protected final List<Upload.ProgressListener> progressListeners =
       new ArrayList<>();
   protected Upload.Receiver receiver;
+  protected Html5Receiver html5Receiver;
+
+  /**
+   * Installs the {@link Html5FileUploadHandler} into the session if it is not
+   * already registered. This should be called when an HTML5 uploader is
+   * attached to the UI. It is safe to call this method multiple times and only
+   * a single handler will be installed for the session.
+   */
+  protected void installHandler() {
+    // See if the uploader handler is already installed for this session.
+    boolean handlerInstalled = false;
+    for (RequestHandler handler : getSession().getRequestHandlers()) {
+      if (handler instanceof Html5FileUploadHandler) {
+        handlerInstalled = true;
+      }
+    }
+
+    // Install the upload handler if one is not already registered.
+    if (!handlerInstalled) {
+      getSession().addRequestHandler(new Html5FileUploadHandler());
+    }
+  }
+
+  /**
+   * Returns true if the component is enabled. This implementation always
+   * returns true even if the component is set to disabled. This is required
+   * because we want the ability to disable the browse/submit buttons while
+   * still allowing an upload in progress to continue. The implementation relies
+   * on RPC calls so the overall component must always be enabled or the upload
+   * complete RPC call will be dropped.
+   *
+   * @return always true
+   */
+  @Override
+  public boolean isConnectorEnabled() {
+    return true;
+  }
 
   /**
    * Fires the upload success event to all registered listeners.
@@ -219,18 +257,26 @@ public abstract class AbstractHtml5Uploader extends AbstractJavaScriptComponent 
   }
 
   /**
-   * Returns true if the component is enabled. This implementation always
-   * returns true even if the component is set to disabled. This is required
-   * because we want the ability to disable the browse/submit buttons while
-   * still allowing an upload in progress to continue. The implemention relies
-   * on RPC calls so the overall component must always be enabled or the upload
-   * complete RPC call will be dropped.
+   * Sets the receiver that will be used to create output streams when a file
+   * starts uploading. The file data will be written to the returned stream. If
+   * not set, the uploaded data will be ignored. The receiver may be called
+   * multiple times with different file names if there are multiple files in the
+   * upload queue.
    *
-   * @return always true
+   * @param receiver the receiver to use for creating file output streams
    */
-  @Override
-  public boolean isConnectorEnabled() {
-    return true;
+  public void setReceiver(Upload.Receiver receiver) {
+    this.receiver = receiver;
+
+    if (receiver == null) {
+      this.html5Receiver = null;
+    }
+    else if (receiver instanceof Html5Receiver) {
+      this.html5Receiver = (Html5Receiver) receiver;
+    }
+    else {
+      this.html5Receiver = new DefaultHtml5Receiver(receiver);
+    }
   }
 
   /**

@@ -31,11 +31,40 @@ org_mpilone_vaadin_upload_fineuploader_FineUploader = function() {
    */
   var uploader;
 
+  /**
+   * The div that contains the buttons and inputs for upload.
+   * 
+   * @type @exp;document@call;createElement
+   */
   var container;
+  
+  /**
+   * The div that acts as the browse for files button.
+   * 
+   * @type @exp;document@call;createElement
+   */
   var browseBtn;
+  
+  /**
+   * The div that acts as the submit button when in manual mode.
+   * 
+   * @type @exp;document@call;createElement
+   */
   var submitBtn;
+  
+  /**
+   * The input that displays the file name in manual mode.
+   * 
+   * @type @exp;document@call;createElement
+   */
   var fileInput;
 
+  /**
+   * The last time a progress RPC call was sent to the server side. This is 
+   * used to throttle the progress calls to prevent flooding the server side.
+   * 
+   * @type Number
+   */
   var lastProgressRpc = 0;
 
   /*

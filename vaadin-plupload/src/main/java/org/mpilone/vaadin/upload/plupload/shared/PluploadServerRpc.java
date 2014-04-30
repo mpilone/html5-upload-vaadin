@@ -1,4 +1,4 @@
-package org.mpilone.vaadin.shared;
+package org.mpilone.vaadin.upload.plupload.shared;
 
 import com.vaadin.shared.communication.ServerRpc;
 
@@ -10,15 +10,16 @@ import com.vaadin.shared.communication.ServerRpc;
  * @author mpilone
  */
 public interface PluploadServerRpc extends ServerRpc {
-  void onUploadFile(PluploadFile file);
+  void onUploadFile(String id, String name, int contentLength);
 
-   void onError(PluploadError error);
+  void onError(String id, String name, String contentType,
+      int contentLength, Integer errorCode, String errorReason);
 
-  void onFileUploaded(PluploadFile file);
+  void onFileUploaded(String id, String name, int contentLength);
 
   void onInit(String runtime);
 
-  void onProgress(int percent);
+  void onProgress(String id, String name, int uploadedBytes, int totalBytes);
 
   void onStateChanged(int state);
 }
