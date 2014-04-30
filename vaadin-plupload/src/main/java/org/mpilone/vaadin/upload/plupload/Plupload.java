@@ -378,36 +378,14 @@ public class Plupload extends AbstractHtml5Uploader {
 
       if (errorCode != null && errorCode.equals(ErrorCode.FILE_SIZE_ERROR.
           getCode())) {
-        fireFileSizeExceeded(
-            new FileSizeExceededEvent(Plupload.this, name, contentType,
-                contentLength));
+        fireFileSizeExceeded(new FileSizeExceededEvent(Plupload.this, name,
+            contentType, contentLength));
       }
 
       log.info("Error on upload. id: {}, name: {}, reason: {}", id, name,
           errorReason);
 
       endUpload();
-
-//      FailedEvent evt = null;
-//      if (uploadSession != null) {
-//        evt = new FailedEvent(Plupload.this, uploadSession.filename,
-//            uploadSession.mimeType, uploadSession.contentLength,
-//            new RuntimeException(errorReason));
-//      }
-//
-//      log.info("Error on upload. Code: {} Message: {}", error.getCode(),
-//          error.getMessage());
-//
-//      if (ErrorCode.FILE_SIZE_ERROR.getCode().equals(error.getCode())) {
-//        fireFileSizeExceeded(
-//            new FileSizeExceededEvent(Plupload.this, error.getFile().getName(),
-//                error.getFile().getType(), error.getFile().getSize()));
-//      }
-//      else if (uploadSession != null) {
-//        fireUploadInterrupted(evt);
-//      }
-//
-//      endUpload();
     }
 
     @Override
@@ -423,38 +401,12 @@ public class Plupload extends AbstractHtml5Uploader {
         // if the upload has already started.
         uploadSession.contentLength = contentLength;
       }
-//      uploadSession.filename = file.getName();
-//
-//      log.info("Started upload of file {} with length {}.",
-//          uploadSession.filename, uploadSession.contentLength);
-//
-//      fireStarted(new AbstractHtml5Uploader.StartedEvent(Plupload.this,
-//          uploadSession.filename, uploadSession.mimeType,
-//          uploadSession.contentLength));
     }
 
     @Override
     public void onFileUploaded(String id, String name, int contentLength) {
-      // Ignore. May be removed in the future.
-
-//      boolean interrupted = uploadSession.interrupted;
-//
-//      // Use bytesRead rather than the given contentLength because it is
-//      // unreliable. For example, HTML4 on IE8 will always send null/-1.
-//      SucceededEvent evt = new SucceededEvent(Plupload.this,
-//          uploadSession.filename, uploadSession.mimeType,
-//          uploadSession.bytesRead);
-//
-//      endUpload();
-//
-//      // Ignore if the upload was interrupted because the content can't
-//      // be trusted.
-//      if (!interrupted) {
-//        log.info("Completed upload of file {} with length {}.", file.getName(),
-//            file.getSize());
-//
-//        fireUploadSuccess(evt);
-//      }
+      // End the upload if there was one in progress.
+      endUpload();
     }
 
     @Override
@@ -624,22 +576,6 @@ public class Plupload extends AbstractHtml5Uploader {
         fireUploadSuccess(evt);
         endUpload();
       }
-
-//      // Flush the retry stream if we are supporting retries.
-//      if (uploadSession.txOutstream != null) {
-//        try {
-//          uploadSession.txOutstream.commit();
-//        }
-//        catch (IOException ex) {
-//          throw new RuntimeException("Failed to commit stream data for chunk.",
-//              ex);
-//        }
-//      }
-//
-//      // Update the total bytes read. This is needed because this stream
-//      // may only be one of many chunks.
-//      uploadSession.bytesRead += event.getBytesReceived();
-//      fireUpdateProgress(uploadSession.bytesRead, uploadSession.contentLength);
     }
 
     @Override
@@ -669,34 +605,12 @@ public class Plupload extends AbstractHtml5Uploader {
             uploadSession.contentLength, exception));
       }
 
-      endUpload();
-
+      // Because we can't prevent retries on an HTML4 or non-chunked upload,
+      // we'll delay ending the upload until we get the RPC call from the
+      // client.
+      
       html5Event.setResponse(new Html5StreamVariable.UploadResponse(200,
           "text/plain", responseContent));
-
-//      Exception exception = event.getException();
-//
-//      if (exception instanceof NoInputStreamException) {
-//        fireNoInputStream(uploadSession.filename,
-//            uploadSession.mimeType, uploadSession.contentLength);
-//      }
-//      else if (exception instanceof NoOutputStreamException) {
-//        fireNoOutputStream(uploadSession.filename,
-//            uploadSession.mimeType, uploadSession.contentLength);
-//      }
-//      else if (exception instanceof FileUploadHandler.UploadInterruptedException) {
-//        if (!getState().interruptUpload) {
-//          // Tell the uploader to stop sending chunks.
-//          getState().interruptUpload = true;
-//
-//          fireUploadInterrupted(new FailedEvent(Plupload.this,
-//              uploadSession.filename, uploadSession.mimeType,
-//              uploadSession.contentLength, exception));
-//        }
-//      }
-//
-//      // Assume that we'll get an onError RPC call that we can use to
-//      // cleanup resources.
     }
   }
 
@@ -709,8 +623,8 @@ public class Plupload extends AbstractHtml5Uploader {
     int contentLength;
     String filename;
     String mimeType;
-    long bytesRead;
-    boolean interrupted;
+    volatile long bytesRead;
+    volatile boolean interrupted;
   }
 
   /**

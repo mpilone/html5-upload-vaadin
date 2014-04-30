@@ -528,8 +528,8 @@ public class FineUploader extends AbstractHtml5Uploader {
     int contentLength;
     String filename;
     String mimeType;
-    long bytesRead;
-    boolean interrupted;
+    volatile long bytesRead;
+    volatile boolean interrupted;
   }
 
 }

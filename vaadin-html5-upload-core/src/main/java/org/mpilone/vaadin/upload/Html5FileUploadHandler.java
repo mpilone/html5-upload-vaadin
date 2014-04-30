@@ -126,7 +126,8 @@ public class Html5FileUploadHandler implements RequestHandler {
       handleMultipartRequest(context);
     }
     else {
-      throw new UnsupportedOperationException("Not supported yet.");
+      throw new UnsupportedOperationException("Not supported. Client should "
+          + "use multipart upload.");
     }
   }
 
@@ -283,20 +284,20 @@ public class Html5FileUploadHandler implements RequestHandler {
 
         if (listenProgress) {
           long now = System.currentTimeMillis();
-                    // to avoid excessive session locking and event storms,
+          // to avoid excessive session locking and event storms,
           // events are sent in intervals, or at the end of the file.
           if (lastStreamingEvent + getProgressEventInterval() <= now
               || bytesRead <= 0) {
             lastStreamingEvent = now;
-          // update progress if listener set and contentLength received
-          session.lock();
-          try {
-            StreamingProgressEventImpl progressEvent =
-                new StreamingProgressEventImpl(context);
-            streamVariable.onProgress(progressEvent);
-          }
-          finally {
-            session.unlock();
+            // update progress if listener set and contentLength received
+            session.lock();
+            try {
+              StreamingProgressEventImpl progressEvent =
+                  new StreamingProgressEventImpl(context);
+              streamVariable.onProgress(progressEvent);
+            }
+            finally {
+              session.unlock();
             }
           }
         }
