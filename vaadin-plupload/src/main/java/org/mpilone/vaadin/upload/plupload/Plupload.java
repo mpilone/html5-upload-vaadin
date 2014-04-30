@@ -272,6 +272,7 @@ public class Plupload extends AbstractHtml5Uploader {
     }
 
     getState().submitUpload = false;
+    getState().interruptUpload = false;
   }
 
   /**
@@ -290,7 +291,6 @@ public class Plupload extends AbstractHtml5Uploader {
       uploadSession = null;
     }
 
-    getState().interruptUpload = false;
     getState().submitUpload = false;
   }
 
@@ -661,7 +661,8 @@ public class Plupload extends AbstractHtml5Uploader {
       else if (exception instanceof FileUploadHandler.UploadInterruptedException) {
         // We respond with a 200 error in this case and wait for the
         // interrupted state change to cancel the upload on the client side.
-        responseContent = "{\"success\": false, \"error\": \"interrupted\"}";
+        responseContent = "{\"success\": false, \"error\": \"interrupted\", "
+            + "\"preventRetry\": true}";
 
         fireUploadInterrupted(new FailedEvent(Plupload.this,
             uploadSession.filename, uploadSession.mimeType,

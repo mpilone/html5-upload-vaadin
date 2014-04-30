@@ -101,16 +101,9 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
     browseBtn.enabled = true;
     container.appendChild(browseBtn.root);
 
-//    browseBtn.disabledBtn = this._createPseudoVaadinButton();
-//    browseBtn.disabledBtn.root.className = BROWSE_BUTTON_CLASSNAME + " v-disabled";
-//    browseBtn.disabledBtn.root.style.display = DISPLAY_NONE;
-//    browseBtn.disabledBtn.caption.innerHTML = BROWSE_BUTTON_CAPTION;
-//    container.appendChild(browseBtn.disabledBtn.root);
-
     // If not immediate, add a separate submit button.
     if (state.immediate && state.buttonCaption !== null) {
       browseBtn.caption.innerHTML = state.buttonCaption;
-//      browseBtn.disabledBtn.caption.innerHTML = state.buttonCaption;
     }
     else if (!state.immediate) {
       fileInput = document.createElement("input");
@@ -129,12 +122,6 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
           }
         };
         container.appendChild(submitBtn.root);
-
-//        submitBtn.disabledBtn = this._createPseudoVaadinButton();
-//        submitBtn.disabledBtn.root.className = SUBMIT_BUTTON_CLASSNAME + " v-disabled";
-//        submitBtn.disabledBtn.caption.innerHTML = state.buttonCaption;
-//        submitBtn.disabledBtn.root.style.display = DISPLAY_NONE;
-//        container.appendChild(submitBtn.disabledBtn.root);
       }
     }
   };
@@ -206,6 +193,8 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
     uploader.bind('ChunkUploaded', function(up, file, chunkResponse) {
       var response = JSON.parse(chunkResponse.response);
       
+      console_log("Chunk complete. Response: " + chunkResponse.response);
+      
       if (response.preventRetry) {
         console_log("Preventing retries after chunk response.");
         uploader.stop();
@@ -252,7 +241,9 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
 
     uploader.bind('FilesRemoved', function(up, files) {
       console_log("Files removed: " + files[0].name);
-      fileInput.value = "";
+      if (fileInput) {
+        fileInput.value = "";
+      }
     });
 
     uploader.init();
@@ -309,16 +300,20 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
     if (state.enabled && !browseBtn.enabled) {
       uploader.disableBrowse(false);
       browseBtn.root.className = BROWSE_BUTTON_CLASSNAME;
+      browseBtn.enabled = true;
+      
       if (submitBtn) {
         submitBtn.root.className = SUBMIT_BUTTON_CLASSNAME;
       }
-      browseBtn.enabled = false;
     }
     else if (!state.enabled && browseBtn.enabled) {
       uploader.disableBrowse(true);
       browseBtn.root.className = BROWSE_BUTTON_CLASSNAME + " v-disabled";
-      submitBtn.root.className = SUBMIT_BUTTON_CLASSNAME + " v-disabled";
       browseBtn.enabled = false;
+      
+      if (submitBtn) {
+        submitBtn.root.className = SUBMIT_BUTTON_CLASSNAME + " v-disabled";
+      }
     }
 
     // Check for upload start state change.
@@ -356,34 +351,4 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
       caption: btnCaption
     };
   };
-
-  // -----------------------
-  // Init component
-//  console_log("Building container.");
-//
-//  var container = document.createElement("div");
-//  container.setAttribute("id", "plupload_container_" + connectorId);
-//  container.className = "plupload";
-//  element.appendChild(container);
-//
-//  var browseBtn = createPseudoVaadinButton();
-//  browseBtn.root.setAttribute("id", "plupload_browse_button_" + connectorId);
-//  browseBtn.root.className = BROWSE_BUTTON_CLASSNAME;
-//  browseBtn.caption.innerHTML = "Choose File";
-//  container.appendChild(browseBtn.root);
-//
-//  var fileInput = document.createElement("input");
-//  fileInput.setAttribute("type", "text");
-//  fileInput.setAttribute("readonly", "true");
-//  fileInput.className = "plupload-file v-textfield v-widget v-textfield-prompt v-readonly v-textfield-readonly";
-//  container.appendChild(fileInput);
-//
-//  var submitBtn = createPseudoVaadinButton();
-//  submitBtn.root.className = SUBMIT_BUTTON_CLASSNAME;
-//  submitBtn.caption.innerHTML = "Submit";
-//  submitBtn.root.onclick = function() {
-//    uploader.start();
-//  };
-//  submitBtn.disabled = false;
-//  container.appendChild(submitBtn.root);
 };
