@@ -10,10 +10,12 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Upload;
 
 /**
+ * A base class for all HTML5 upload component implementations that provides
+ * basic event handling and registration of the {@link Html5FileUploadHandler}.
  *
  * @author mpilone
  */
-public abstract class AbstractHtml5Uploader extends AbstractJavaScriptComponent {
+public abstract class AbstractHtml5Upload extends AbstractJavaScriptComponent {
 
   private final static Method SUCCEEDED_METHOD;
   private final static Method STARTED_METHOD;
@@ -36,9 +38,23 @@ public abstract class AbstractHtml5Uploader extends AbstractJavaScriptComponent 
     }
   }
 
+  /**
+   * The list of progress listeners to be notified during the upload.
+   */
   protected final List<Upload.ProgressListener> progressListeners =
       new ArrayList<>();
+
+  /**
+   * The receiver registered with the upload component that all data will be
+   * streamed into.
+   */
   protected Upload.Receiver receiver;
+
+  /**
+   * The HTML5 wrapper on the receiver. This may or may not be the same as the
+   * {@link #receiver} registered with the upload depending on if the register
+   * receiver implements the HTML5 receiver interface.
+   */
   protected Html5Receiver html5Receiver;
 
   /**
@@ -259,9 +275,10 @@ public abstract class AbstractHtml5Uploader extends AbstractJavaScriptComponent 
   /**
    * Sets the receiver that will be used to create output streams when a file
    * starts uploading. The file data will be written to the returned stream. If
-   * not set, the uploaded data will be ignored. The receiver may be called
-   * multiple times with different file names if there are multiple files in the
-   * upload queue.
+   * not set, the uploaded data will be ignored. If the receiver implements
+   * {@link Html5Receiver} it will be used directly, otherwise it will be
+   * wrapped in a {@link DefaultHtml5Receiver} to handle chunking and retries
+   * properly.
    *
    * @param receiver the receiver to use for creating file output streams
    */

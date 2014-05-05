@@ -32,7 +32,7 @@ import com.vaadin.ui.*;
  */
 @JavaScript({"fineuploader_connector.js",
   "fineuploader/fineuploader-4.4.0.min.js"})
-public class FineUploader extends AbstractHtml5Uploader {
+public class FineUploader extends AbstractHtml5Upload {
 
   /**
    * Serialization ID.

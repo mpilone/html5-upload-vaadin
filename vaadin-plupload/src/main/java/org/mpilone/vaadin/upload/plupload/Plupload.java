@@ -38,7 +38,7 @@ import com.vaadin.util.FileTypeResolver;
  * @author mpilone
  */
 @JavaScript({"plupload_connector.js", "plupload/plupload.full.min.js"})
-public class Plupload extends AbstractHtml5Uploader {
+public class Plupload extends AbstractHtml5Upload {
 
   /**
    * Serialization ID.

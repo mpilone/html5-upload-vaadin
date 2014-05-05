@@ -6,7 +6,7 @@ import static org.mpilone.vaadin.StyleConstants.FULL_WIDTH;
 
 import java.util.Date;
 
-import org.mpilone.vaadin.upload.AbstractHtml5Uploader;
+import org.mpilone.vaadin.upload.AbstractHtml5Upload;
 
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
@@ -58,7 +58,7 @@ public abstract class AbstractUploadDemo extends HorizontalLayout implements
     rightColumnLayout.addComponent(btn);
   }
 
-  protected void addExample(String title, AbstractHtml5Uploader upload,
+  protected void addExample(String title, AbstractHtml5Upload upload,
       Component... comps) {
     ProgressBar progressBar = new ProgressBar();
     upload.addProgressListener(new BarProgressListener(progressBar, this));

@@ -7,16 +7,35 @@ import java.nio.ByteBuffer;
 import com.vaadin.ui.Upload;
 
 /**
+ * An implementation of an {@link Html5Receiver} that implements two different
+ * output streams: an in-memory buffering stream and a disk buffering stream.
+ * The stream data is buffered to properly support retries and chunking. If
+ * retries are not enabled, the output stream simply writes directly to the
+ * original, delegate receiver's output stream.
  *
  * @author mpilone
  */
 public class DefaultHtml5Receiver implements
     Html5Receiver {
 
+  /**
+   * The delegate receiver to create the underlying output stream.
+   */
   private final Upload.Receiver delegate;
 
+  /**
+   * The maximum amount of memory to use in the in-memory output stream in
+   * bytes. If the chunk size is larger than this value, the disk buffering
+   * output stream will be used.
+   */
   private final static int MAX_RETRY_MEMORY = 256 * 1024;
 
+  /**
+   * Constructs the receiver.
+   *
+   * @param delegate the delegate receiver to create the underlying output
+   * stream
+   */
   public DefaultHtml5Receiver(Upload.Receiver delegate) {
     this.delegate = delegate;
   }
@@ -42,8 +61,12 @@ public class DefaultHtml5Receiver implements
     return outstream;
   }
 
-
-  private class MemoryRetryableOutputStream extends RetryableOutputStream {
+  /**
+   * An in-memory buffering output stream. The data will be stored in a byte
+   * buffer and flushed to the delegate output stream when a chunk completes
+   * successfully.
+   */
+  private static class MemoryRetryableOutputStream extends RetryableOutputStream {
 
     private final ByteBuffer buffer;
     private final OutputStream receiverOutstream;
@@ -52,7 +75,6 @@ public class DefaultHtml5Receiver implements
      * Constructs the output stream which will buffer incoming data up to the
      * given capacity.
      *
-     * @param capacity the maximum capacity in bytes
      * @param delegate the delegate stream to write to
      */
     public MemoryRetryableOutputStream(OutputStream delegate) {
@@ -99,7 +121,12 @@ public class DefaultHtml5Receiver implements
     }
   }
 
-  private class DiskRetryableOutputStream extends RetryableOutputStream {
+  /**
+   * A file/disk buffering output stream. The data will be stored in a temporary
+   * file and flushed to the delegate output stream when a chunk completes
+   * successfully.
+   */
+  private static class DiskRetryableOutputStream extends RetryableOutputStream {
 
     protected OutputStream tempOutstream;
     protected final OutputStream receiverOutstream;
@@ -132,6 +159,12 @@ public class DefaultHtml5Receiver implements
       cleanUp();
     }
 
+    /**
+     * Cleans up resources including closing the file output stream and deleting
+     * the temporary file.
+     *
+     * @throws IOException if an error occurs
+     */
     private void cleanUp() throws IOException {
 
       if (tempOutstream != null) {

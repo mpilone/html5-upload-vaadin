@@ -12,6 +12,14 @@ import java.nio.ByteBuffer;
  */
 public class Streams {
 
+  /**
+   * Copies all the data from the given input stream to the output stream.
+   *
+   * @param instream the input stream to read from
+   * @param outstream the output stream to write to
+   *
+   * @throws IOException if an error occurs reading or writing
+   */
   public static void copy(InputStream instream, OutputStream outstream) throws
       IOException {
     byte[] buf = new byte[Html5FileUploadHandler.MAX_UPLOAD_BUFFER_SIZE];
@@ -22,7 +30,17 @@ public class Streams {
     }
   }
 
-  static void copy(ByteBuffer buffer, int length, OutputStream receiverOutstream)
+  /**
+   * Copies {@code length} bytes from the buffer to the output stream. The
+   * buffer must be in a position to read.
+   *
+   * @param buffer the buffer to read from
+   * @param length the number of bytes to read from the buffer
+   * @param outstream the output stream to write to
+   *
+   * @throws IOException if an error occurs reading or writing
+   */
+  static void copy(ByteBuffer buffer, int length, OutputStream outstream)
       throws IOException {
 
     byte[] buf = new byte[Html5FileUploadHandler.MAX_UPLOAD_BUFFER_SIZE];
@@ -31,7 +49,7 @@ public class Streams {
       length -= len;
 
       buffer.get(buf, 0, len);
-      receiverOutstream.write(buf, 0, len);
+      outstream.write(buf, 0, len);
     }
   }
 
@@ -51,6 +69,14 @@ public class Streams {
     return filename;
   }
 
+  /**
+   * Reads the entire input stream into a String using UTF-8 encoding and
+   * returns the String.
+   *
+   * @param instream the input stream to read
+   *
+   * @return the contents of the stream as a String
+   */
   public static String asString(InputStream instream) {
     try (java.util.Scanner s = new java.util.Scanner(instream, "UTF-8").
         useDelimiter("\\A")) {
