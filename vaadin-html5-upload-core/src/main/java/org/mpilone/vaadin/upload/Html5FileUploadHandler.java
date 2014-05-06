@@ -1,7 +1,7 @@
 package org.mpilone.vaadin.upload;
 
 import static com.vaadin.server.communication.FileUploadHandler.DEFAULT_STREAMING_PROGRESS_EVENT_INTERVAL_MS;
-import static java.util.Arrays.asList;
+import static java.lang.String.format;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -23,7 +23,8 @@ import com.vaadin.ui.UI;
  * {@link Html5StreamVariable} events to allow the stream variable lower level
  * access to upload data such as form parameters and response messages which is
  * needed for HTML5, AJAX style uploaders such as FineUploader and Plupload.
- * This functionality could be rolled into the standard Vaadin
+ * It
+ * would be nice if this functionality would be rolled into the standard Vaadin
  * {@link FileUploadHandler} in the future.
  *
  * @author mpilone
@@ -34,8 +35,12 @@ public class Html5FileUploadHandler implements RequestHandler {
   private static final Charset UTF_8 = Charset.forName("UTF-8");
   private static final int CRLF_SIZE = 2;
   private static final int DASH_DASH_SIZE = 2;
+  private static final int COLON_SPACE_SIZE = 2;
 
-
+  /**
+   * The URL prefix that this handler will handle. All requests matching this
+   * request URL will be assumed to be uploads.
+   */
   public static final String URL_PREFIX = "APP/HTML5_FILE_UPLOAD/";
 
   @Override
@@ -96,31 +101,49 @@ public class Html5FileUploadHandler implements RequestHandler {
     context.contentType = request.getHeader(FileUploadBase.CONTENT_TYPE);
     context.request = request;
     context.response = response;
+    context.servletRequest = asServletRequest(request);
     context.session = session;
     context.source = source;
     context.streamVariable = streamVariable;
     context.params = new HashMap<>();
 
-    // Copy over the parameters into our own map.
-    for (Map.Entry<String, String[]> entry : context.request.getParameterMap().
-        entrySet()) {
-      Collection<String> values = new ArrayList<>(asList(entry.getValue()));
-      context.params.put(entry.getKey(), values);
-    }
+    // Copy over the URL parameters into our own map so they can be provided
+    // to the stream variable implementation.
+    context.addParams(request.getParameterMap());
 
     handleRequest(context);
 
     return true;
   }
 
+  /**
+   * Extracts the HTTP servlet request from the given Vaadin request after some
+   * error checking.
+   *
+   * @param request the HTTP request providing the servlet request
+   *
+   * @return the request as a servlet request
+   */
   private HttpServletRequest asServletRequest(VaadinRequest request) {
+    if (!(request instanceof VaadinServletRequest)) {
+      throw new IllegalArgumentException(format("Expected %s but found %s.",
+          VaadinServletRequest.class, request.getClass()));
+    }
+
     return ((VaadinServletRequest) request).getHttpServletRequest();
   }
 
+  /**
+   * Handles the given request for upload after the required fields have been
+   * extracted from the URL and put into the upload context.
+   *
+   * @param context the upload context including the request, session, and
+   * stream variable
+   */
   private void handleRequest(UploadContext context) {
 
     boolean isMultipart = ServletFileUpload.isMultipartContent(
-        asServletRequest(context.request));
+        context.servletRequest);
 
     if (isMultipart) {
       handleMultipartRequest(context);
@@ -131,43 +154,51 @@ public class Html5FileUploadHandler implements RequestHandler {
     }
   }
 
+  /**
+   * Handles the given multi-part request for upload after the required fields
+   * have been extracted from the URL and put into the upload context.
+   *
+   * @param context the upload context including the request, session, and
+   * stream variable
+   */
   private void handleMultipartRequest(UploadContext context) {
 
     Html5StreamVariable.UploadResponse response = null;
 
-    // Determine the size of the boundary.
+    // Determine the boundary so the content length of the final file
+    // part can be calculated accurately.
     String contentDispositionHeader = context.request.getHeader(
         FileUploadBase.CONTENT_TYPE);
     int pos = contentDispositionHeader.indexOf("boundary=");
     String boundary = contentDispositionHeader.substring(pos + "boundary=".
         length());
 
-    // Create a new file upload handler
+    // Create a new Apache commons file upload handler.
     ServletFileUpload upload = new ServletFileUpload();
 
     try {
-      // Parse the request
-      FileItemIterator iter = upload.getItemIterator(asServletRequest(
-          context.request));
+      // Parse the request and iterate over the parts.
+      FileItemIterator iter = upload.getItemIterator(context.servletRequest);
       while (iter.hasNext()) {
         FileItemStream item = iter.next();
         String name = item.getFieldName();
 
         try (InputStream stream = item.openStream()) {
-          if (item.isFormField()) {
-            String value = Streams.asString(stream);
-            if (!context.params.containsKey(name)) {
-              context.params.put(name, new ArrayList<String>());
-            }
-            context.params.get(name).add(value);
 
+          if (item.isFormField()) {
+            // The item is a simple form field. Copy the name and value into 
+            // the parameters map so they can be provided to the stream
+            // variable.
+            String value = Streams.asString(stream);
+            context.addParam(name, value);
             context.dataContentLength -=
                 calcTotalItemSize(boundary, value, item.getHeaders());
           }
           else {
+            // The item is a the file data to be uploaded. Stream the data
+            // to the receiver variable.
             context.filename = Streams.removePath(item.getName());
             context.contentType = item.getContentType();
-
             context.dataContentLength -=
                 calcTotalItemSize(boundary, null, item.getHeaders());
 
@@ -176,6 +207,7 @@ public class Html5FileUploadHandler implements RequestHandler {
         }
       }
 
+      // If no custom response was set, create a default.
       if (response == null) {
         response = new Html5StreamVariable.UploadResponse(
             HttpServletResponse.SC_OK, "text/plain", "Upload Successful");
@@ -222,10 +254,11 @@ public class Html5FileUploadHandler implements RequestHandler {
     // Item headers
     for (Iterator<String> iter = headers.getHeaderNames(); iter.hasNext();) {
       String headerName = iter.next();
-      totalLength += headerName.getBytes(UTF_8).length + CRLF_SIZE;
 
       for (Iterator<String> iter2 = headers.getHeaders(headerName); iter2.
           hasNext();) {
+        totalLength += headerName.getBytes(UTF_8).length + COLON_SPACE_SIZE;
+
         String headerValue = iter2.next();
         totalLength += headerValue.getBytes(UTF_8).length + CRLF_SIZE;
       }
@@ -234,14 +267,32 @@ public class Html5FileUploadHandler implements RequestHandler {
     // Blank line after headers.
     totalLength += CRLF_SIZE;
 
-    // Item value (may not be set if this is the final file part)
+    // Item value (may not be set if this is the final file part).
     if (value != null) {
-      totalLength += value.getBytes(UTF_8).length;
+      totalLength += value.getBytes(UTF_8).length + CRLF_SIZE;
+    }
+    else {
+      // This is the file part so we add the trailing boundary.
+      totalLength += CRLF_SIZE;
+      totalLength += DASH_DASH_SIZE + boundary.getBytes(UTF_8).length
+          + DASH_DASH_SIZE + CRLF_SIZE;
     }
 
     return totalLength;
   }
 
+  /**
+   * Streams all the data in the input stream to the receiver. Proper session
+   * locking will be done so the streaming events are properly dispatched with
+   * the session/UI lock while the raw data streaming is done outside the lock.
+   *
+   * @param in the input stream to read from
+   * @param context the current upload context including the target stream
+   * variable and session to lock
+   *
+   * @return the response if set by the stream variable or null
+   * @throws UploadException if an error occurs while streaming the data
+   */
   private Html5StreamVariable.UploadResponse streamToReceiver(InputStream in,
       UploadContext context) throws UploadException {
 
@@ -254,6 +305,9 @@ public class Html5FileUploadHandler implements RequestHandler {
     OutputStream out = null;
     StreamingStartEventImpl startedEvent = new StreamingStartEventImpl(context);
     try {
+
+      // Fire the started event and determine if the receiver wants to
+      // be notified of progress events.
       boolean listenProgress;
       session.lock();
       try {
@@ -275,39 +329,45 @@ public class Html5FileUploadHandler implements RequestHandler {
         throw new NoInputStreamException();
       }
 
+      // Stream the data using a simple memory buffer.
       final byte buffer[] = new byte[MAX_UPLOAD_BUFFER_SIZE];
       int bytesRead;
-      long lastStreamingEvent = 0;
+      long lastProgressEventTime = 0;
       while ((bytesRead = in.read(buffer)) > 0) {
         out.write(buffer, 0, bytesRead);
         context.dataRead += bytesRead;
 
-        if (listenProgress) {
-          long now = System.currentTimeMillis();
-          // to avoid excessive session locking and event storms,
-          // events are sent in intervals, or at the end of the file.
-          if (lastStreamingEvent + getProgressEventInterval() <= now
-              || bytesRead <= 0) {
-            lastStreamingEvent = now;
-            // update progress if listener set and contentLength received
-            session.lock();
-            try {
-              StreamingProgressEventImpl progressEvent =
-                  new StreamingProgressEventImpl(context);
-              streamVariable.onProgress(progressEvent);
-            }
-            finally {
-              session.unlock();
-            }
+        // To avoid excessive session locking and event storms,
+        // events are sent in intervals, or at the end of the file.
+        long now = System.currentTimeMillis();
+        boolean readyProgress = lastProgressEventTime
+            + getProgressEventInterval() <= now;
+        boolean completeProgress = context.dataRead == context.dataContentLength;
+
+        // If the receiver is interested in progress events and ready 
+        // for the next event (i.e. enough time has elapsed) or we're at 
+        // the end of the data, lock the session and fire a new one.
+        if (listenProgress && (readyProgress || completeProgress)) {
+          lastProgressEventTime = now;
+          context.session.lock();
+          try {
+            StreamingProgressEventImpl progressEvent =
+                new StreamingProgressEventImpl(context);
+            context.streamVariable.onProgress(progressEvent);
+          }
+          finally {
+            context.session.unlock();
           }
         }
 
+        // Check if the server side interrupted the upload. If so, we should
+        // attempt to abort the receiving process as soon as possible.
         if (streamVariable.isInterrupted()) {
           throw new FileUploadHandler.UploadInterruptedException();
         }
       }
 
-      // upload successful
+      // Upload successful. Fire the end event.
       out.close();
       StreamingEndEventImpl event = new StreamingEndEventImpl(context);
       session.lock();
@@ -359,17 +419,44 @@ public class Html5FileUploadHandler implements RequestHandler {
     return response;
   }
 
+//  private long notifyReceiverOfProgress(UploadContext context,
+//      long lastProgressEventTime) {
+//    // To avoid excessive session locking and event storms,
+//    // events are sent in intervals, or at the end of the file.
+//    long now = System.currentTimeMillis();
+//
+//        // If the receiver is interested in progress events and we haven't
+//    // generated a progress event recently, lock the session and fire a
+//    // new one.
+//    if (lastProgressEventTime + getProgressEventInterval() <= now) {
+//
+//    }
+//
+//    return lastProgressEventTime;
+//  }
+
   /**
    * To prevent event storming, streaming progress events are sent in this
    * interval rather than every time the buffer is filled. This fixes #13155. To
    * adjust this value override the method, and register your own handler in
    * VaadinService.createRequestHandlers(). The default is 500ms, and setting it
    * to 0 effectively restores the old behavior.
+   *
+   * @return the desired delay in MS between progress events
    */
   protected int getProgressEventInterval() {
     return DEFAULT_STREAMING_PROGRESS_EVENT_INTERVAL_MS;
   }
 
+  /**
+   * Returns true if the given request's path starts with the given prefix. This
+   * method handles automatically adding a leading '/' if required.
+   *
+   * @param request the request to examine
+   * @param prefix the path to check against the request
+   *
+   * @return true if the request starts with the given prefix
+   */
   private static boolean hasPathPrefix(VaadinRequest request, String prefix) {
     String pathInfo = request.getPathInfo();
 
@@ -384,10 +471,15 @@ public class Html5FileUploadHandler implements RequestHandler {
     return (pathInfo.startsWith(prefix));
   }
 
+  /**
+   * The context of the current upload. This is a simple structure to hold all
+   * the information that must be tracked during a single upload.
+   */
   private static class UploadContext {
 
     public VaadinRequest request;
     public VaadinResponse response;
+    public HttpServletRequest servletRequest;
     public VaadinSession session;
     public String contentType;
     public int contentLength = -1;
@@ -397,13 +489,58 @@ public class Html5FileUploadHandler implements RequestHandler {
     public StreamVariable streamVariable;
     public ClientConnector source;
     public Map<String, Collection<String>> params;
+
+    /**
+     * Adds all the parameters defined in the map to the {@link #params} field.
+     *
+     * @param paramMap the map of parameters to add
+     */
+    public void addParams(Map<String, String[]> paramMap) {
+      for (Map.Entry<String, String[]> entry : paramMap.entrySet()) {
+        addParams(entry.getKey(), entry.getValue());
+      }
+    }
+
+    /**
+     * Adds all the values for the given parameter to the {@link #params} field.
+     *
+     * @param name the name of the parameter
+     * @param values the values of the parameter
+     */
+    public void addParams(String name, String[] values) {
+      for (String value : values) {
+        addParam(name, value);
+      }
+    }
+
+    /**
+     * Adds the value for the given parameter to the {@link #params} field.
+     *
+     * @param name the name of the parameter
+     * @param value the value of the parameter
+     */
+    public void addParam(String name, String value) {
+      if (!params.containsKey(name)) {
+        params.put(name, new ArrayList<String>());
+      }
+      params.get(name).add(value);
+    }
   }
 
+  /**
+   * Base class for the streaming event implementations.
+   */
   private static abstract class AbstractStreamingEvent implements
       StreamVariable.StreamingEvent {
 
     protected final UploadContext context;
 
+    /**
+     * Constructs the event which will reference the given context for
+     * information.
+     *
+     * @param context the upload context
+     */
     private AbstractStreamingEvent(UploadContext context) {
       this.context = context;
     }
@@ -430,20 +567,39 @@ public class Html5FileUploadHandler implements RequestHandler {
 
   }
 
+  /**
+   * The progress event implementation.
+   */
   private static class StreamingProgressEventImpl extends AbstractStreamingEvent
       implements StreamVariable.StreamingProgressEvent {
 
+    /**
+     * Constructs the event which will reference the given context for
+     * information.
+     *
+     * @param context the upload context
+     */
     private StreamingProgressEventImpl(UploadContext context) {
       super(context);
     }
   }
 
+  /**
+   * The error event implementation.
+   */
   private static class StreamingErrorEventImpl extends AbstractStreamingEvent
       implements Html5StreamVariable.Html5StreamingErrorEvent {
 
     private final Exception ex;
     private Html5StreamVariable.UploadResponse response;
 
+    /**
+     * Constructs the event which will reference the given context for
+     * information.
+     *
+     * @param context the upload context
+     * @param ex the (optional) exception that caused the error
+     */
     public StreamingErrorEventImpl(UploadContext context, Exception ex) {
       super(context);
       this.ex = ex;
@@ -459,18 +615,31 @@ public class Html5FileUploadHandler implements RequestHandler {
       this.response = response;
     }
 
+    /**
+     * Returns the optional response set by the stream variable.
+     *
+     * @return the response
+     */
     public Html5StreamVariable.UploadResponse getResponse() {
       return response;
     }
   }
 
+  /**
+   * The end event implementation.
+   */
   private static class StreamingEndEventImpl extends AbstractStreamingEvent
       implements Html5StreamVariable.Html5StreamingEndEvent {
 
     private Html5StreamVariable.UploadResponse response;
 
-    private StreamingEndEventImpl(
-        UploadContext context) {
+    /**
+     * Constructs the event which will reference the given context for
+     * information.
+     *
+     * @param context the upload context
+     */
+    private StreamingEndEventImpl(UploadContext context) {
       super(context);
     }
 
@@ -479,14 +648,28 @@ public class Html5FileUploadHandler implements RequestHandler {
       this.response = response;
     }
 
+    /**
+     * Returns the optional response set by the stream variable.
+     *
+     * @return the response
+     */
     public Html5StreamVariable.UploadResponse getResponse() {
       return response;
     }
   }
 
+  /**
+   * The started event implementation.
+   */
   private static class StreamingStartEventImpl extends AbstractStreamingEvent
       implements Html5StreamVariable.Html5StreamingStartEvent {
 
+    /**
+     * Constructs the event which will reference the given context for
+     * information.
+     *
+     * @param context the upload context
+     */
     private StreamingStartEventImpl(UploadContext context) {
       super(context);
     }
@@ -512,7 +695,5 @@ public class Html5FileUploadHandler implements RequestHandler {
         return values.iterator().next();
       }
     }
-
   }
-
 }

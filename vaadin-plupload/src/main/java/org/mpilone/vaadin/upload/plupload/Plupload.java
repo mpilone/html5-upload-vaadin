@@ -22,18 +22,6 @@ import com.vaadin.util.FileTypeResolver;
  * follow the {@link Upload} API as much as possible to be a drop-in
  * replacement.
  * </p>
- * <p>
- * The Plupload component announces the start of an upload via RPC which means
- * it is possible that the data could begin arriving at the Receiver before the
- * uploadStarted event is fired. Also, the filename passed to the Receiver
- * during output stream creation may be inaccurate as Plupload labels chunks
- * with a filename of "blob".
- * </p>
- * <p>
- * When using retries, the incoming data must be buffered in order to reset the
- * input stream in the event of a partial upload. Therefore it is recommend that
- * only small files be supported or chunking is used to limit the file size.
- * </p>
  *
  * @author mpilone
  */
@@ -69,9 +57,9 @@ public class Plupload extends AbstractHtml5Upload {
    * Constructs the upload component. The following defaults will be used:
    * <ul>
    * <li>runtimes: html5,flash,html4</li>
-   * <li>chunkSize: null</li>
+   * <li>chunkSize: 0 (i.e. disabled)</li>
    * <li>maxFileSize: 10MB</li>
-   * <li>multiSelection: false</li>
+   * <li>maxRetries: 0 (i.e. disabled)</li>
    * </ul>
    *
    * @param caption the caption of the component
@@ -95,6 +83,7 @@ public class Plupload extends AbstractHtml5Upload {
 
     setRuntimes(Runtime.HTML5, Runtime.FLASH, Runtime.HTML4);
     setReceiver(receiver);
+    setMaxFileSize(10 * 1024 * 1024);
   }
 
   @Override
@@ -396,7 +385,8 @@ public class Plupload extends AbstractHtml5Upload {
     @Override
     public void onUploadFile(String id, String name, int contentLength) {
 
-      if (contentLength > 0 && uploadSession != null) {
+      if (contentLength > 0 && uploadSession != null
+          && uploadSession.contentLength != contentLength) {
         // Get the more accurate content length from the file
         // if the upload has already started.
         uploadSession.contentLength = contentLength;
@@ -417,14 +407,18 @@ public class Plupload extends AbstractHtml5Upload {
 
       // Update the content length value as it may be more accurate than
       // what we have from the actual POST data.
-      if (uploadSession != null) {
+       if (totalBytes > 0 && uploadSession != null
+           && uploadSession.contentLength != totalBytes) {
+
+        // Get the more accurate content length from the file
+        // if the upload has already started.
         uploadSession.contentLength = totalBytes;
       }
     }
 
     @Override
     public void onInit(String runtime) {
-      log.info("Uploader {} initialized with runtime {}.", getConnectorId(),
+      log.debug("Uploader {} initialized with runtime {}.", getConnectorId(),
           runtime);
 
       Plupload.this.runtime = Runtime.valueOf(runtime.toUpperCase());
@@ -445,14 +439,13 @@ public class Plupload extends AbstractHtml5Upload {
 
     @Override
     public boolean listenProgress() {
-      return (progressListeners != null && !progressListeners
-          .isEmpty());
+      return progressListeners != null && !progressListeners.isEmpty();
     }
 
     @Override
     public void onProgress(StreamVariable.StreamingProgressEvent event) {
-      fireUpdateProgress(event.getBytesReceived(),
-          event.getContentLength());
+      fireUpdateProgress(uploadSession.bytesRead + event.getBytesReceived(),
+          uploadSession.contentLength);
     }
 
     @Override
@@ -462,13 +455,15 @@ public class Plupload extends AbstractHtml5Upload {
 
     @Override
     public OutputStream getOutputStream() {
+
       boolean retryEnabled = getMaxRetries() > 0;
+      boolean chunkEnabled = chunkCount > 1;
 
       if (uploadSession.receiverOutstream == null) {
         uploadSession.receiverOutstream =
             html5Receiver.receiveUpload(
                 uploadSession.filename, uploadSession.mimeType,
-                retryEnabled, chunkCount > 1, chunkContentLength,
+                retryEnabled, chunkEnabled, chunkContentLength,
                 uploadSession.contentLength);
       }
 
@@ -560,7 +555,6 @@ public class Plupload extends AbstractHtml5Upload {
       // Update the total bytes read. This is needed because this stream
       // may only be one of many chunks.
       uploadSession.bytesRead += event.getBytesReceived();
-      fireUpdateProgress(uploadSession.bytesRead, uploadSession.contentLength);
 
       html5Event.setResponse(new Html5StreamVariable.UploadResponse(200,
           "text/plain", "{\"success\":true}"));

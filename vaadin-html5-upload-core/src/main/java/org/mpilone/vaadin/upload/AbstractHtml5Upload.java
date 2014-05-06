@@ -110,6 +110,9 @@ public abstract class AbstractHtml5Upload extends AbstractJavaScriptComponent {
    *
    */
   protected void fireUpdateProgress(long totalBytes, long contentLength) {
+//    LoggerFactory.getLogger(getClass()).info("Progress: {} of {}", totalBytes,
+//        contentLength);
+
     // This is implemented differently than other listeners to maintain
     // backwards compatibility
     if (progressListeners != null) {

@@ -22,11 +22,6 @@ import com.vaadin.ui.*;
  * follow the {@link Upload} API as much as possible to be a drop-in
  * replacement.
  * </p>
- * <p>
- * When using retries, the incoming data must be buffered in order to reset the
- * input stream in the event of a partial upload. Therefore it is recommend that
- * only small files be supported or chunking is used to limit the file size.
- * </p>
  *
  * @author mpilone
  */
@@ -42,7 +37,7 @@ public class FineUploader extends AbstractHtml5Upload {
   /**
    * The log for this class.
    */
-  private final Logger log = LoggerFactory.getLogger(getClass());
+  private final static Logger log = LoggerFactory.getLogger(FineUploader.class);
 
   private final FineUploaderServerRpc rpc = new FineUploaderServerRpcImpl();
   private StreamVariable streamVariable;
@@ -51,7 +46,7 @@ public class FineUploader extends AbstractHtml5Upload {
   /**
    * Constructs the upload component.
    *
-   * @see #Plupload(java.lang.String, com.vaadin.ui.Upload.Receiver)
+   * @see #FineUploader(java.lang.String, com.vaadin.ui.Upload.Receiver)
    */
   public FineUploader() {
     this(null, null);
@@ -60,10 +55,9 @@ public class FineUploader extends AbstractHtml5Upload {
   /**
    * Constructs the upload component. The following defaults will be used:
    * <ul>
-   * <li>runtimes: html5,flash,silverlight,html4</li>
-   * <li>chunkSize: null</li>
+   * <li>chunkSize: 0 (i.e. disabled)</li>
    * <li>maxFileSize: 10MB</li>
-   * <li>multiSelection: false</li>
+   * <li>maxRetries: 0 (i.e. disabled)</li>
    * </ul>
    *
    * @param caption the caption of the component
@@ -74,6 +68,7 @@ public class FineUploader extends AbstractHtml5Upload {
     registerRpc(rpc);
     setCaption(caption);
     setReceiver(receiver);
+    setMaxFileSize(10 * 1024 * 1024);
   }
 
   @Override
@@ -177,8 +172,6 @@ public class FineUploader extends AbstractHtml5Upload {
   public long getBytesRead() {
     return uploadSession.bytesRead;
   }
-
- 
 
   /**
    * Sets the size in bytes of each data chunk to be sent from the client to the
@@ -339,7 +332,7 @@ public class FineUploader extends AbstractHtml5Upload {
 
     @Override
     public void onInit(String runtime) {
-      log.info("Uploader initialized.");
+      log.debug("Uploader {} initialized.", getConnectorId());
 
       getState().rebuild = false;
     }
@@ -358,14 +351,13 @@ public class FineUploader extends AbstractHtml5Upload {
 
     @Override
     public boolean listenProgress() {
-      return (progressListeners != null && !progressListeners
-          .isEmpty());
+      return progressListeners != null && !progressListeners.isEmpty();
     }
 
     @Override
     public void onProgress(StreamVariable.StreamingProgressEvent event) {
-      fireUpdateProgress(event.getBytesReceived(),
-          event.getContentLength());
+      fireUpdateProgress(uploadSession.bytesRead + event.getBytesReceived(),
+          uploadSession.contentLength);
     }
 
     @Override
@@ -377,12 +369,13 @@ public class FineUploader extends AbstractHtml5Upload {
     public OutputStream getOutputStream() {
 
       boolean retryEnabled = getMaxRetries() > 0;
+      boolean chunkEnabled = chunkCount > 1;
 
       if (uploadSession.receiverOutstream == null) {
         uploadSession.receiverOutstream =
             html5Receiver.receiveUpload(
                 uploadSession.filename, uploadSession.mimeType,
-                retryEnabled, chunkCount > 1, chunkContentLength,
+                retryEnabled, chunkEnabled, chunkContentLength,
                 uploadSession.contentLength);
       }
 
@@ -392,7 +385,7 @@ public class FineUploader extends AbstractHtml5Upload {
       if (retryEnabled
           && !(uploadSession.receiverOutstream instanceof RetryableOutputStream)) {
         log.warn("Retries are enabled but the receiver output stream does "
-            + "not implemented RetryableOutputStream. Duplicate data may be "
+            + "not implemente RetryableOutputStream. Duplicate data may be "
             + "written to the receiver in the event of a partial upload and "
             + "retry. Disable retries or use a RetryableOutputStream to "
             + "avoid this warning.");
@@ -469,13 +462,12 @@ public class FineUploader extends AbstractHtml5Upload {
       // Update the total bytes read. This is needed because this stream
       // may only be one of many chunks.
       uploadSession.bytesRead += event.getBytesReceived();
-      fireUpdateProgress(uploadSession.bytesRead, uploadSession.contentLength);
 
       html5Event.setResponse(new Html5StreamVariable.UploadResponse(200,
           "text/plain", "{\"success\":true}"));
 
       // See if we're done with this upload.
-      if (uploadSession.bytesRead == uploadSession.contentLength) {
+      if (chunkIndex + 1 == chunkCount) {
         Streams.tryClose(uploadSession.receiverOutstream);
 
         SucceededEvent evt = new SucceededEvent(FineUploader.this,
