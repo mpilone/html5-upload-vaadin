@@ -419,22 +419,6 @@ public class Html5FileUploadHandler implements RequestHandler {
     return response;
   }
 
-//  private long notifyReceiverOfProgress(UploadContext context,
-//      long lastProgressEventTime) {
-//    // To avoid excessive session locking and event storms,
-//    // events are sent in intervals, or at the end of the file.
-//    long now = System.currentTimeMillis();
-//
-//        // If the receiver is interested in progress events and we haven't
-//    // generated a progress event recently, lock the session and fire a
-//    // new one.
-//    if (lastProgressEventTime + getProgressEventInterval() <= now) {
-//
-//    }
-//
-//    return lastProgressEventTime;
-//  }
-
   /**
    * To prevent event storming, streaming progress events are sent in this
    * interval rather than every time the buffer is filled. This fixes #13155. To
