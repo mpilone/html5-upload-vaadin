@@ -44,7 +44,8 @@ public class Html5FileUploadHandler implements RequestHandler {
   public static final String URL_PREFIX = "APP/HTML5_FILE_UPLOAD/";
 
   @Override
-  public boolean handleRequest(VaadinSession session, VaadinRequest request,
+  public boolean handleRequest(final VaadinSession session,
+      VaadinRequest request,
       VaadinResponse response) throws IOException {
 
     // Most of this initial URL handling code is taken from
@@ -62,39 +63,41 @@ public class Html5FileUploadHandler implements RequestHandler {
     String uppUri = pathInfo.substring(startOfData);
 
     // 0 = UI ID, 1 = connector ID, 2= name, 3 = sec key
-    String[] parts = uppUri.split("/", 4);
-    String uiId = parts[0];
-    String connectorId = parts[1];
-    String variableName = parts[2];
+    final String[] parts = uppUri.split("/", 4);
+    final String uiId = parts[0];
+    final String connectorId = parts[1];
+    final String variableName = parts[2];
 
-    // These are retrieved while session is locked
-    ClientConnector source;
-    StreamVariable streamVariable;
+    // Populate initial fields while session is locked.
+    final UploadContext context = new UploadContext();
 
-    session.lock();
-    try {
-      UI uI = session.getUIById(Integer.parseInt(uiId));
-      UI.setCurrent(uI);
+    session.accessSynchronously(new Runnable() {
+      @Override
+      public void run() {
+        UI uI = session.getUIById(Integer.parseInt(uiId));
+        UI.setCurrent(uI);
 
-      streamVariable = uI.getConnectorTracker().getStreamVariable(
-          connectorId, variableName);
-      String secKey = uI.getConnectorTracker().getSeckey(streamVariable);
-      if (!secKey.equals(parts[3])) {
-        // TODO Should rethink error handling
-        return true;
+        StreamVariable streamVariable = uI.getConnectorTracker().
+            getStreamVariable(
+                connectorId, variableName);
+        String secKey = uI.getConnectorTracker().getSeckey(streamVariable);
+
+        if (secKey.equals(parts[3])) {
+          context.streamVariable = streamVariable;
+          context.source = session.getCommunicationManager().getConnector(uI,
+              connectorId);
+        }
       }
+    });
 
-      source = session.getCommunicationManager().getConnector(uI,
-          connectorId);
-    }
-    finally {
-      session.unlock();
+    if (context.streamVariable == null || context.source == null) {
+      // TODO: rethink error handling here.
+      return true;
     }
 
     String contentLengthHeader = request.
         getHeader(FileUploadBase.CONTENT_LENGTH);
-
-    UploadContext context = new UploadContext();
+    
     context.contentLength = contentLengthHeader != null ? Integer.parseInt(
         contentLengthHeader) : -1;
     context.dataContentLength = context.contentLength;
@@ -103,8 +106,6 @@ public class Html5FileUploadHandler implements RequestHandler {
     context.response = response;
     context.servletRequest = asServletRequest(request);
     context.session = session;
-    context.source = source;
-    context.streamVariable = streamVariable;
     context.params = new HashMap<>();
 
     // Copy over the URL parameters into our own map so they can be provided
@@ -161,7 +162,7 @@ public class Html5FileUploadHandler implements RequestHandler {
    * @param context the upload context including the request, session, and
    * stream variable
    */
-  private void handleMultipartRequest(UploadContext context) {
+  private void handleMultipartRequest(final UploadContext context) {
 
     Html5StreamVariable.UploadResponse response = null;
 
@@ -221,16 +222,13 @@ public class Html5FileUploadHandler implements RequestHandler {
       }
     }
     catch (IOException | FileUploadException | UploadException e) {
-
-      VaadinSession session = context.session;
-      session.lock();
-      try {
-        session.getCommunicationManager()
-            .handleConnectorRelatedException(context.source, e);
-      }
-      finally {
-        session.unlock();
-      }
+      context.session.accessSynchronously(new Runnable() {
+        @Override
+        public void run() {
+          context.session.getCommunicationManager()
+              .handleConnectorRelatedException(context.source, e);
+        }
+      });
     }
   }
 
@@ -283,8 +281,9 @@ public class Html5FileUploadHandler implements RequestHandler {
 
   /**
    * Streams all the data in the input stream to the receiver. Proper session
-   * locking will be done so the streaming events are properly dispatched with
-   * the session/UI lock while the raw data streaming is done outside the lock.
+   * locking will be done so the streaming events are dispatched within the
+   * session/UI lock while the raw data streaming is done outside the lock to
+   * prevent blocking the application while data is received.
    *
    * @param in the input stream to read from
    * @param context the current upload context including the target stream
@@ -294,30 +293,34 @@ public class Html5FileUploadHandler implements RequestHandler {
    * @throws UploadException if an error occurs while streaming the data
    */
   private Html5StreamVariable.UploadResponse streamToReceiver(InputStream in,
-      UploadContext context) throws UploadException {
+      final UploadContext context) throws UploadException {
 
-    VaadinSession session = context.session;
-    StreamVariable streamVariable = context.streamVariable;
+    // Grab some fields from the context for quick access.
+    final VaadinSession session = context.session;
+    final StreamVariable streamVariable = context.streamVariable;
 
-    // Create the default response.
     Html5StreamVariable.UploadResponse response = null;
-
     OutputStream out = null;
-    StreamingStartEventImpl startedEvent = new StreamingStartEventImpl(context);
-    try {
+    boolean listenProgress;
 
+    try {
       // Fire the started event and determine if the receiver wants to
       // be notified of progress events.
-      boolean listenProgress;
-      session.lock();
-      try {
-        streamVariable.streamingStarted(startedEvent);
-        out = streamVariable.getOutputStream();
-        listenProgress = streamVariable.listenProgress();
-      }
-      finally {
-        session.unlock();
-      }
+      final StreamingStartEventImpl startedEvent =
+          new StreamingStartEventImpl(context);
+
+      final Object[] outValues = new Object[2];
+      session.accessSynchronously(new Runnable() {
+        @Override
+        public void run() {
+          streamVariable.streamingStarted(startedEvent);
+          outValues[0] = streamVariable.getOutputStream();
+          outValues[1] = streamVariable.listenProgress();
+        }
+      });
+
+      out = (OutputStream) outValues[0];
+      listenProgress = (boolean) outValues[1];
 
       if (out == null) {
         // No output stream to write to.
@@ -349,15 +352,15 @@ public class Html5FileUploadHandler implements RequestHandler {
         // the end of the data, lock the session and fire a new one.
         if (listenProgress && (readyProgress || completeProgress)) {
           lastProgressEventTime = now;
-          context.session.lock();
-          try {
-            StreamingProgressEventImpl progressEvent =
-                new StreamingProgressEventImpl(context);
-            context.streamVariable.onProgress(progressEvent);
-          }
-          finally {
-            context.session.unlock();
-          }
+          final StreamingProgressEventImpl progressEvent =
+              new StreamingProgressEventImpl(context);
+
+          session.accessSynchronously(new Runnable() {
+            @Override
+            public void run() {
+              streamVariable.onProgress(progressEvent);
+            }
+          });
         }
 
         // Check if the server side interrupted the upload. If so, we should
@@ -369,14 +372,14 @@ public class Html5FileUploadHandler implements RequestHandler {
 
       // Upload successful. Fire the end event.
       out.close();
-      StreamingEndEventImpl event = new StreamingEndEventImpl(context);
-      session.lock();
-      try {
-        streamVariable.streamingFinished(event);
-      }
-      finally {
-        session.unlock();
-      }
+      final StreamingEndEventImpl event = new StreamingEndEventImpl(context);
+
+      session.accessSynchronously(new Runnable() {
+        @Override
+        public void run() {
+          streamVariable.streamingFinished(event);
+        }
+      });
 
       response = event.getResponse();
     }
@@ -387,14 +390,15 @@ public class Html5FileUploadHandler implements RequestHandler {
       // Note, we are not throwing interrupted exception forward as it is
       // not a terminal level error like all other exception.
       Streams.tryClose(out);
-      StreamingErrorEventImpl event = new StreamingErrorEventImpl(context, e);
-      session.lock();
-      try {
-        streamVariable.streamingFailed(event);
-      }
-      finally {
-        session.unlock();
-      }
+      final StreamingErrorEventImpl event =
+          new StreamingErrorEventImpl(context, e);
+
+      session.accessSynchronously(new Runnable() {
+        @Override
+        public void run() {
+          streamVariable.streamingFailed(event);
+        }
+      });
 
       response = event.getResponse();
     }
@@ -402,18 +406,18 @@ public class Html5FileUploadHandler implements RequestHandler {
       // Download interrupted by an unexpected error. Replay the error to
       // the stream variable and raise an exception.
       Streams.tryClose(out);
-      session.lock();
-      try {
-        StreamingErrorEvent event = new StreamingErrorEventImpl(context, e);
-        streamVariable.streamingFailed(event);
+      final StreamingErrorEvent event = new StreamingErrorEventImpl(context, e);
 
-        // throw exception for terminal to be handled (to be passed to
-        // terminalErrorHandler)
-        throw new UploadException(e);
-      }
-      finally {
-        session.unlock();
-      }
+      session.accessSynchronously(new Runnable() {
+        @Override
+        public void run() {
+          streamVariable.streamingFailed(event);
+        }
+      });
+
+      // throw exception for terminal to be handled (to be passed to
+      // terminalErrorHandler)
+      throw new UploadException(e);
     }
 
     return response;
