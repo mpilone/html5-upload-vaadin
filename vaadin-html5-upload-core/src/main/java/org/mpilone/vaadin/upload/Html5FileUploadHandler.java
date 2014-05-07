@@ -21,9 +21,8 @@ import com.vaadin.ui.UI;
 /**
  * A custom file upload request handler that generates
  * {@link Html5StreamVariable} events to allow the stream variable lower level
- * access to upload data such as form parameters and response messages which is
- * needed for HTML5, AJAX style uploaders such as FineUploader and Plupload.
- * It
+ * access to upload data such as form parameters and response messages that are
+ * needed for HTML5, AJAX style uploaders such as FineUploader and Plupload. It
  * would be nice if this functionality would be rolled into the standard Vaadin
  * {@link FileUploadHandler} in the future.
  *
@@ -31,10 +30,24 @@ import com.vaadin.ui.UI;
  */
 public class Html5FileUploadHandler implements RequestHandler {
 
-  static final int MAX_UPLOAD_BUFFER_SIZE = 4 * 1024;
+  /**
+   * The UTF-8 character set for decoding content.
+   */
   private static final Charset UTF_8 = Charset.forName("UTF-8");
+
+  /**
+   * The byte size of the "\r\n" after a header.
+   */
   private static final int CRLF_SIZE = 2;
+
+  /**
+   * The byte size of the "--" before or after the part boundary.
+   */
   private static final int DASH_DASH_SIZE = 2;
+
+  /**
+   * The byte size of the ": " after a header.
+   */
   private static final int COLON_SPACE_SIZE = 2;
 
   /**
@@ -156,7 +169,7 @@ public class Html5FileUploadHandler implements RequestHandler {
   }
 
   /**
-   * Handles the given multi-part request for upload after the required fields
+   * Handles the given multipart request for upload after the required fields
    * have been extracted from the URL and put into the upload context.
    *
    * @param context the upload context including the request, session, and
@@ -233,12 +246,14 @@ public class Html5FileUploadHandler implements RequestHandler {
   }
 
   /**
-   * Calculates the byte size of the file item part given the current boundary,
-   * part value, and any part headers.
+   * Calculates the byte size of the multipart item given the current boundary,
+   * item value, and any item headers. If the value is null, the item is assumed
+   * to be a file and the size will include the trailing boundary (and
+   * associated dash-dash).
    *
-   * @param boundary the multi-part boundary
-   * @param value the value/data in the part
-   * @param headers the part headers
+   * @param boundary the multipart boundary
+   * @param value the value/data in the item
+   * @param headers the item headers
    *
    * @return the total size including expected line feeds and boundary dashes
    */
@@ -280,10 +295,10 @@ public class Html5FileUploadHandler implements RequestHandler {
   }
 
   /**
-   * Streams all the data in the input stream to the receiver. Proper session
-   * locking will be done so the streaming events are dispatched within the
-   * session/UI lock while the raw data streaming is done outside the lock to
-   * prevent blocking the application while data is received.
+   * Streams all the data in the input stream to the receiver's output stream.
+   * Proper session locking will be done so the streaming events are dispatched
+   * within the session/UI lock while the raw data streaming is done outside the
+   * lock to prevent blocking the application while data is received.
    *
    * @param in the input stream to read from
    * @param context the current upload context including the target stream
@@ -333,7 +348,7 @@ public class Html5FileUploadHandler implements RequestHandler {
       }
 
       // Stream the data using a simple memory buffer.
-      final byte buffer[] = new byte[MAX_UPLOAD_BUFFER_SIZE];
+      final byte buffer[] = new byte[Streams.IO_BUFFER_SIZE];
       int bytesRead;
       long lastProgressEventTime = 0;
       while ((bytesRead = in.read(buffer)) > 0) {

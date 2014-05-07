@@ -11,6 +11,11 @@ import java.nio.ByteBuffer;
  * @author mpilone
  */
 public class Streams {
+  /**
+   * The byte size of the buffer to use when reading from an input stream and
+   * writing to an output stream (i.e. stream data copying).
+   */
+  static final int IO_BUFFER_SIZE = 4 * 1024;
 
   /**
    * Copies all the data from the given input stream to the output stream.
@@ -22,7 +27,7 @@ public class Streams {
    */
   public static void copy(InputStream instream, OutputStream outstream) throws
       IOException {
-    byte[] buf = new byte[Html5FileUploadHandler.MAX_UPLOAD_BUFFER_SIZE];
+    byte[] buf = new byte[IO_BUFFER_SIZE];
 
     int read;
     while ((read = instream.read(buf)) != -1) {
@@ -43,7 +48,7 @@ public class Streams {
   static void copy(ByteBuffer buffer, int length, OutputStream outstream)
       throws IOException {
 
-    byte[] buf = new byte[Html5FileUploadHandler.MAX_UPLOAD_BUFFER_SIZE];
+    byte[] buf = new byte[IO_BUFFER_SIZE];
     while (length > 0) {
       int len = Math.min(buf.length, length);
       length -= len;
