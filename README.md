@@ -48,6 +48,36 @@ authors.
 * Interrupting of HTML4 uploads with retries enabled may be slow as multiple 
   retries may need to abort before the entire upload is interrupted.
 
+## Example Usage
+
+    Plupload upload = new Plupload();
+    upload.setMaxFileSize(500 * 1024 * 1024);
+    upload.setButtonCaption("Upload File");
+    upload.setReceiver(new MyReceiverImpl());
+
+    // New features supported by HTML5 uploader.
+    upload.setChunkSize(256 * 1024);    
+    upload.setMaxRetries(2);
+    
+    upload.addStartedListener(new Plupload.StartedListener() {
+      @Override
+      public void uploadStarted(Plupload.StartedEvent evt) {
+        // ...
+      }
+    });
+    upload.addSucceededListener(new Plupload.SucceededListener() {
+      @Override
+      public void uploadSucceeded(Plupload.SucceededEvent evt) {
+        // ...
+      }
+    });
+    upload.addFailedListener(new Plupload.FailedListener() {
+      @Override
+      public void uploadFailed(Plupload.FailedEvent evt) {
+        // ...
+      }
+    });
+
 # FineUploader
 
 ## Features
@@ -63,6 +93,36 @@ authors.
   features are not exposed, such as the upload queue.
 * Interrupting of HTML4 uploads with retries enabled may be slow as multiple 
   retries may need to abort before the entire upload is interrupted.
+
+## Example Usage
+
+    FineUploader upload = new FineUploader();
+    upload.setMaxFileSize(500 * 1024 * 1024);
+    upload.setButtonCaption("Upload File");
+    upload.setReceiver(new MyReceiverImpl());
+
+    // New features supported by HTML5 uploader.
+    upload.setChunkSize(256 * 1024);    
+    upload.setMaxRetries(2);
+    
+    upload.addStartedListener(new FineUploader.StartedListener() {
+      @Override
+      public void uploadStarted(FineUploader.StartedEvent evt) {
+        // ...
+      }
+    });
+    upload.addSucceededListener(new FineUploader.SucceededListener() {
+      @Override
+      public void uploadSucceeded(FineUploader.SucceededEvent evt) {
+        // ...
+      }
+    });
+    upload.addFailedListener(new FineUploader.FailedListener() {
+      @Override
+      public void uploadFailed(FineUploader.FailedEvent evt) {
+        // ...
+      }
+    });
 
 # Future Enhancements
 
