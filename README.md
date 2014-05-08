@@ -18,7 +18,7 @@ licensing concerns, and browser support. Currently the features exposed from
 each of the libraries is roughly equivalent; however licensing costs, 
 communities, and support options vary greatly between the components.
 
-**NOTE:** While this Vaadin component is free to use (GPLv3), you are 
+**NOTE:** While this Vaadin component is free to use (see LICENSE.txt), you are 
 responsible for properly licensing the underlying JavaScript libraries based on 
 the license requirements for the specific component used. This Java component 
 in no way grants or implies a license from the original JavaScript library 

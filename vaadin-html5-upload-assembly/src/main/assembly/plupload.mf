@@ -1,0 +1,5 @@
+Vaadin-Package-Version: 1
+Vaadin-Dependency: 
+Vaadin-Addon: 
+Implementation-Title: Plupload
+Implementation-Version: ${project.version}
