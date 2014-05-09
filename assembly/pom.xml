@@ -4,22 +4,33 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+<parent>
+  <artifactId>html5-upload-vaadin-parent</artifactId>
   <groupId>org.mpilone</groupId>
-  <artifactId>vaadin-html5-upload-assembly</artifactId>
   <version>1.4-SNAPSHOT</version>
+</parent>
+
+  <artifactId>html5-upload-vaadin-assembly</artifactId>
   <packaging>pom</packaging>
 
-  <name>Vaadin HTML5 Upload Assembly</name>
+  <name>HTML5 Upload for Vaadin Assembly</name>
   <url>http://github.com/mpilone/vaadin-html5-upload</url>
   <description>Vaadin add-on assembly.</description>
 
- <!-- <dependencies>
+ <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>vaadin-plupload</artifactId>
+      <artifactId>plupload-vaadin</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
-  </dependencies> -->
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>fineuploader-vaadin</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
 
   <build>
     <plugins>

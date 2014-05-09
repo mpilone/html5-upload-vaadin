@@ -13,7 +13,7 @@
     <moduleSet>
       <useAllReactorProjects>true</useAllReactorProjects>
       <includes>
-        <include>${project.groupId}:vaadin-plupload</include>
+        <include>${project.groupId}:plupload-vaadin</include>
       </includes>
       <binaries>
         <unpack>false</unpack>
@@ -34,7 +34,7 @@
     <moduleSet>
       <useAllReactorProjects>true</useAllReactorProjects>
       <includes>
-        <include>${project.groupId}:vaadin-plupload</include>
+        <include>${project.groupId}:plupload-vaadin</include>
       </includes>
       <binaries>
         <unpack>false</unpack>
@@ -46,7 +46,7 @@
     <moduleSet>
       <useAllReactorProjects>true</useAllReactorProjects>
       <includes>
-        <include>${project.groupId}:vaadin-plupload</include>
+        <include>${project.groupId}:plupload-vaadin</include>
       </includes>
       <binaries>
         <unpack>true</unpack>

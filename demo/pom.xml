@@ -6,14 +6,14 @@
 
   <parent>
     <groupId>org.mpilone</groupId>
-    <artifactId>vaadin-html5-upload</artifactId>
+    <artifactId>html5-upload-vaadin-parent</artifactId>
     <version>1.4-SNAPSHOT</version>
   </parent>
   
-  <artifactId>vaadin-html5-upload-demo</artifactId>
+  <artifactId>html5-upload-vaadin-demo</artifactId>
   <packaging>war</packaging>
 
-  <name>Vaadin HTML5 Upload Demo</name>
+  <name>HTML5 Upload for Vaadin Demo</name>
 
   <properties>
     <jetty.version>9.0.7.v20131107</jetty.version>
@@ -23,12 +23,12 @@
     <!-- Compile -->
     <dependency>
       <groupId>org.mpilone</groupId>
-      <artifactId>vaadin-plupload</artifactId>
+      <artifactId>plupload-vaadin</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.mpilone</groupId>
-      <artifactId>vaadin-fineuploader</artifactId>
+      <artifactId>fineuploader-vaadin</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

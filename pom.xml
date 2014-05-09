@@ -5,12 +5,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.mpilone</groupId>
-  <artifactId>vaadin-html5-upload</artifactId>
+  <artifactId>html5-upload-vaadin-parent</artifactId>
   <version>1.4-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>Vaadin HTML5 Upload</name>
-  <url>http://github.com/mpilone/vaadin-html5-upload</url>
+  <name>HTML5 Upload for Vaadin</name>
+  <url>http://github.com/mpilone/html5-upload-vaadin</url>
   <description>Vaadin wrapper for the [Fine Uploader](http://fineuploader.com) 
     HTML5 upload component. The component implements an API
     that is extremely similar to the standard Vaadin Upload component so it
@@ -18,11 +18,11 @@
   </description>
 
   <modules>
-    <module>vaadin-fineuploader</module>
-    <module>vaadin-plupload</module>
-    <module>vaadin-html5-upload-demo</module>
-    <module>vaadin-html5-upload-core</module>
-    <module>vaadin-html5-upload-assembly</module>
+    <module>assembly</module>
+    <module>demo</module>
+    <module>core</module>
+    <module>fineuploader</module>
+    <module>plupload</module>
   </modules>
 
   <build>
@@ -59,7 +59,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     
-    <vaadin.version>7.1.14</vaadin.version>
+    <vaadin.version>7.1.15</vaadin.version>
 
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
