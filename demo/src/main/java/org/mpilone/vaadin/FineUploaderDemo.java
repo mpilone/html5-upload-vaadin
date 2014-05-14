@@ -65,9 +65,7 @@ public class FineUploaderDemo extends AbstractUploadDemo {
     upload.setButtonCaption("Upload w/o Chunking");
     upload.setChunkSize(0);
     addExample("Immediate Submit with out Chunking", upload);
-
   }
-
 
   private FineUploader buildUpload() {
 
@@ -78,47 +76,12 @@ public class FineUploaderDemo extends AbstractUploadDemo {
     upload.setButtonCaption("Upload File");
     upload.setReceiver(new DemoReceiver(this));
 
-    upload.addStartedListener(new FineUploader.StartedListener() {
-      @Override
-      public void uploadStarted(FineUploader.StartedEvent evt) {
-        log("Upload of file %s started with content size %d.",
-            evt.getFilename(), evt.getContentLength());
-
-        upload.setEnabled(false);
-      }
-    });
-    upload.addSucceededListener(new FineUploader.SucceededListener() {
-      @Override
-      public void uploadSucceeded(FineUploader.SucceededEvent evt) {
-        log("Upload of file %s succeeded with size %d.", evt.
-            getFilename(), evt.getLength());
-      }
-    });
-    upload.addFailedListener(new FineUploader.FailedListener() {
-      @Override
-      public void uploadFailed(FineUploader.FailedEvent evt) {
-        log("Upload of file %s failed with size %d.", evt.
-            getFilename(), evt.getLength());
-      }
-    });
-    upload.addFinishedListener(new FineUploader.FinishedListener() {
-      @Override
-      public void uploadFinished(FineUploader.FinishedEvent evt) {
-        upload.setEnabled(true);
-
-        String hash = null;
-        int count = 0;
-        if (upload.getReceiver() instanceof DemoReceiver) {
-          DemoReceiver r = (DemoReceiver) upload.getReceiver();
-          hash = r.getHash();
-          count = r.getCount();
-        }
-
-        log("Upload of file %s finished with reported size %d, "
-            + "actual size %d, and MD5 hash %s.", evt.getFilename(),
-            evt.getLength(), count, hash);
-      }
-    });
+    UploadStartedFinishedListener listener = new UploadStartedFinishedListener(
+        this);
+    upload.addSucceededListener(listener);
+    upload.addFailedListener(listener);
+    upload.addFinishedListener(listener);
+    upload.addStartedListener(listener);
 
     return upload;
   }

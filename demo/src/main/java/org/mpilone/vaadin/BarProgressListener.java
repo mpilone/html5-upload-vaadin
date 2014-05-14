@@ -26,9 +26,7 @@ class BarProgressListener implements Upload.ProgressListener {
 
   @Override
   public void updateProgress(long readBytes, long contentLength) {
-    if (readBytes % 2048 == 0 || readBytes == contentLength) {
-      log.log("Received %d bytes of %d.", readBytes, contentLength);
-    }
+    log.log("Received %d bytes of %d.", readBytes, contentLength);
 
     if (contentLength > 0) {
       float percent = (float) readBytes / (float) contentLength;

@@ -102,46 +102,16 @@ public class PluploadDemo extends AbstractUploadDemo {
     upload.setButtonCaption("Upload File");
     upload.setReceiver(new DemoReceiver(this));
 
+    UploadStartedFinishedListener listener = new UploadStartedFinishedListener(
+        this);
+    upload.addSucceededListener(listener);
+    upload.addFailedListener(listener);
+    upload.addFinishedListener(listener);
+    upload.addStartedListener(listener);
     upload.addStartedListener(new Plupload.StartedListener() {
       @Override
       public void uploadStarted(Plupload.StartedEvent evt) {
-        log("Upload of file %s started with content size %d using "
-            + "runtime %s.", evt.getFilename(), evt.getContentLength(), upload.
-            getSelectedRuntime());
-
-        upload.setEnabled(false);
-      }
-    });
-    upload.addSucceededListener(new Plupload.SucceededListener() {
-      @Override
-      public void uploadSucceeded(Plupload.SucceededEvent evt) {
-        log("Upload of file %s succeeded with size %d.", evt.
-            getFilename(), evt.getLength());
-      }
-    });
-    upload.addFailedListener(new Plupload.FailedListener() {
-      @Override
-      public void uploadFailed(Plupload.FailedEvent evt) {
-        log("Upload of file %s failed with size %d.", evt.
-            getFilename(), evt.getLength());
-      }
-    });
-    upload.addFinishedListener(new Plupload.FinishedListener() {
-      @Override
-      public void uploadFinished(Plupload.FinishedEvent evt) {
-        upload.setEnabled(true);
-
-        String hash = null;
-        int count = 0;
-        if (upload.getReceiver() instanceof DemoReceiver) {
-          DemoReceiver r = (DemoReceiver) upload.getReceiver();
-          hash = r.getHash();
-          count = r.getCount();
-        }
-
-        log("Upload of file %s finished with reported size %d, "
-            + "actual size %d, and MD5 hash %s.", evt.getFilename(),
-            evt.getLength(), count, hash);
+        log("Using runtime %s.", upload.getSelectedRuntime());
       }
     });
 
