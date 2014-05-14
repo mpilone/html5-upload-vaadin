@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Vaadin-Package-Version: 1
 Vaadin-Dependency: html5-upload-vaadin-core-${project.version}.jar slf4j-api-1.7.6.jar commons-fileupload-1.3.1.jar commons-io-2.2.jar
-Vaadin-Addon: plupload-vaadin-${project.version}
+Vaadin-Addon: fineuploader-vaadin-${project.version}
 Vaadin-License-Title: LGPL v3
 Implementation-Vendor: Mike Pilone
-Implementation-Title: Plupload for Vaadin
+Implementation-Title: Fine Uploader for Vaadin
 Implementation-Version: ${project.version}

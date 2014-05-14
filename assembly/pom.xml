@@ -15,7 +15,8 @@
 
   <name>HTML5 Upload for Vaadin Assembly</name>
   <url>http://github.com/mpilone/vaadin-html5-upload</url>
-  <description>Vaadin add-on assembly.</description>
+  <description>Assembles the HTML5 upload for Vaadin components as 
+    distributable add-ons.</description>
 
  <dependencies>
     <dependency>
@@ -46,9 +47,25 @@
               <goal>single</goal>
             </goals>
             <configuration>
+              <appendAssemblyId>false</appendAssemblyId>
               <descriptors>
                 <descriptor>src/main/assembly/plupload.xml</descriptor>
               </descriptors>
+              <finalName>plupload-vaadin-${project.version}</finalName>
+            </configuration>
+          </execution>
+          <execution>
+            <id>fineuploader-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <appendAssemblyId>false</appendAssemblyId>
+              <descriptors>
+                <descriptor>src/main/assembly/fineuploader.xml</descriptor>
+              </descriptors>
+              <finalName>fineuploader-vaadin-${project.version}</finalName>
             </configuration>
           </execution>
         </executions>

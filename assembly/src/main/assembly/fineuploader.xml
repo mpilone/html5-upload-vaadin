@@ -2,7 +2,7 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
   
-  <id>plupload-assembly</id>
+  <id>fineuploader-assembly</id>
   <formats>
     <format>zip</format>
   </formats>
@@ -12,7 +12,7 @@
     <moduleSet>
       <useAllReactorProjects>true</useAllReactorProjects>
       <includes>
-        <include>${project.groupId}:plupload-vaadin</include>
+        <include>${project.groupId}:fineuploader-vaadin</include>
       </includes>
       <binaries>
         <unpack>false</unpack>
@@ -33,7 +33,7 @@
     <moduleSet>
       <useAllReactorProjects>true</useAllReactorProjects>
       <includes>
-        <include>${project.groupId}:plupload-vaadin</include>
+        <include>${project.groupId}:fineuploader-vaadin</include>
       </includes>
       <binaries>
         <unpack>false</unpack>
@@ -45,7 +45,7 @@
     <moduleSet>
       <useAllReactorProjects>true</useAllReactorProjects>
       <includes>
-        <include>${project.groupId}:plupload-vaadin</include>
+        <include>${project.groupId}:fineuploader-vaadin</include>
       </includes>
       <binaries>
         <unpack>false</unpack>
@@ -67,7 +67,7 @@
   
   <files>
     <file>
-      <source>src/main/assembly/plupload.mf</source>
+      <source>src/main/assembly/fineuploader.mf</source>
       <outputDirectory>META-INF</outputDirectory>
       <destName>MANIFEST.MF</destName>
       <filtered>true</filtered>
