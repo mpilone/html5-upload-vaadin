@@ -84,7 +84,7 @@ public class Html5FileUploadHandler implements RequestHandler {
     // Populate initial fields while session is locked.
     final UploadContext context = new UploadContext();
 
-    session.accessSynchronously(new Runnable() {
+    runInLock(session, new Runnable() {
       @Override
       public void run() {
         UI uI = session.getUIById(Integer.parseInt(uiId));
@@ -235,7 +235,7 @@ public class Html5FileUploadHandler implements RequestHandler {
       }
     }
     catch (IOException | FileUploadException | UploadException e) {
-      context.session.accessSynchronously(new Runnable() {
+      runInLock(context.session, new Runnable() {
         @Override
         public void run() {
           context.session.getCommunicationManager()
@@ -295,6 +295,21 @@ public class Html5FileUploadHandler implements RequestHandler {
   }
 
   /**
+   * Runs the given task in the session after acquiring the session lock. This
+   * is a thin wrapper over {@link VaadinSession#accessSynchronously(java.lang.Runnable)
+   * } to support different strategies.
+   *
+   * @param session the session to lock
+   * @param task the task to run
+   */
+  private static void runInLock(VaadinSession session, Runnable task) {
+    // The original Vaadin file upload handler does session locking
+    // manually using VaadinSession#lock(); however it seems to be safer 
+    // (although maybe a bit slower) to use the new accessSynchronously method.
+    session.accessSynchronously(task);
+  }
+
+  /**
    * Streams all the data in the input stream to the receiver's output stream.
    * Proper session locking will be done so the streaming events are dispatched
    * within the session/UI lock while the raw data streaming is done outside the
@@ -325,7 +340,7 @@ public class Html5FileUploadHandler implements RequestHandler {
           new StreamingStartEventImpl(context);
 
       final Object[] outValues = new Object[2];
-      session.accessSynchronously(new Runnable() {
+      runInLock(session, new Runnable() {
         @Override
         public void run() {
           streamVariable.streamingStarted(startedEvent);
@@ -370,7 +385,7 @@ public class Html5FileUploadHandler implements RequestHandler {
           final StreamingProgressEventImpl progressEvent =
               new StreamingProgressEventImpl(context);
 
-          session.accessSynchronously(new Runnable() {
+          runInLock(session, new Runnable() {
             @Override
             public void run() {
               streamVariable.onProgress(progressEvent);
@@ -389,7 +404,7 @@ public class Html5FileUploadHandler implements RequestHandler {
       out.close();
       final StreamingEndEventImpl event = new StreamingEndEventImpl(context);
 
-      session.accessSynchronously(new Runnable() {
+      runInLock(session, new Runnable() {
         @Override
         public void run() {
           streamVariable.streamingFinished(event);
@@ -408,7 +423,7 @@ public class Html5FileUploadHandler implements RequestHandler {
       final StreamingErrorEventImpl event =
           new StreamingErrorEventImpl(context, e);
 
-      session.accessSynchronously(new Runnable() {
+      runInLock(session, new Runnable() {
         @Override
         public void run() {
           streamVariable.streamingFailed(event);
@@ -423,7 +438,7 @@ public class Html5FileUploadHandler implements RequestHandler {
       Streams.tryClose(out);
       final StreamingErrorEvent event = new StreamingErrorEventImpl(context, e);
 
-      session.accessSynchronously(new Runnable() {
+      runInLock(session, new Runnable() {
         @Override
         public void run() {
           streamVariable.streamingFailed(event);
