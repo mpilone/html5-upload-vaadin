@@ -11,10 +11,11 @@
 
   <name>HTML5 Upload for Vaadin</name>
   <url>http://github.com/mpilone/html5-upload-vaadin</url>
-  <description>Vaadin wrapper for the [Fine Uploader](http://fineuploader.com) 
-    HTML5 upload component. The component implements an API
-    that is extremely similar to the standard Vaadin Upload component so it
-    should require relatively few changes to swap between the implementations.
+  <description>HTML5 upload component implementations for Vaadin including a 
+    core support library and support for Plupload and Fine Uploader. The 
+    components implement an API that is extremely similar to the standard 
+    Vaadin Upload component so it should require relatively few changes to 
+    swap between the implementations.
   </description>
 
   <modules>

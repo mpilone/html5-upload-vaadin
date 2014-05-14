@@ -16,9 +16,10 @@
   <name>Plupload for Vaadin</name>
   <url>http://github.com/mpilone/vaadin-plupload</url>
   <description>Vaadin wrapper for the [Plupload](http://www.plupload.com/) 
-    HTML5/Flash/Silverlight/HTML4 upload component. The component implements an API
-    that is extremely similar to the standard Vaadin Upload component so it
-    should require relatively few changes to swap between the implementations.
+    HTML5/Flash/Silverlight/HTML4 upload component. The component implements 
+    an API that is extremely similar to the standard Vaadin Upload component so 
+    it should require relatively few changes to swap between the 
+    implementations.
   </description>
 
   <dependencies>

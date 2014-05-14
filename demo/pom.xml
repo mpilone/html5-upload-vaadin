@@ -14,7 +14,10 @@
   <packaging>war</packaging>
 
   <name>HTML5 Upload for Vaadin Demo</name>
-
+  <description>Demo of the HTML upload support for Vaadin including 
+    Plupload and Fine Uploader.
+  </description>
+  
   <properties>
     <jetty.version>9.0.7.v20131107</jetty.version>
   </properties>
