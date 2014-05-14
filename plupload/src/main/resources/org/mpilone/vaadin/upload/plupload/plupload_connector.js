@@ -133,8 +133,8 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
   this._buildUploader = function(state) {
 
     var uploadUrl = this.translateVaadinUri(state.url);
-    var flashSwfUrl = this.translateVaadinUri(state.resources["flashSwfUrl"].uRL);
-    var silverlightXapUrl = this.translateVaadinUri(state.resources["silverlightSwfUrl"].uRL);
+    var flashSwfUrl = this.translateVaadinUri(state.resources["flashUrl"].uRL);
+    var silverlightXapUrl = this.translateVaadinUri(state.resources["silverlightUrl"].uRL);
 
     uploader = new plupload.Uploader({
       runtimes: state.runtimes,

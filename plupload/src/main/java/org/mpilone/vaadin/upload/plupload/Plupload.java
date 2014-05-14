@@ -25,7 +25,7 @@ import com.vaadin.util.FileTypeResolver;
  *
  * @author mpilone
  */
-@JavaScript({"plupload_connector.js", "plupload/plupload.full.min.js"})
+@JavaScript({"plupload_connector.js", "plupload/js/plupload.full.min.js"})
 public class Plupload extends AbstractHtml5Upload {
 
   /**
@@ -76,10 +76,10 @@ public class Plupload extends AbstractHtml5Upload {
       FileTypeResolver.addExtension("xap", "application/x-silverlight-app");
     }
 
-    setResource("flashSwfUrl", new ClassResource(getClass(),
-        "plupload/Moxie.swf"));
-    setResource("silverlightSwfUrl", new ClassResource(getClass(),
-        "plupload/Moxie.xap"));
+    setResource("flashUrl", new ClassResource(getClass(),
+        "plupload/js/Moxie.swf"));
+    setResource("silverlightUrl", new ClassResource(getClass(),
+        "plupload/js/Moxie.xap"));
 
     setRuntimes(Runtime.HTML5, Runtime.FLASH, Runtime.HTML4);
     setReceiver(receiver);
