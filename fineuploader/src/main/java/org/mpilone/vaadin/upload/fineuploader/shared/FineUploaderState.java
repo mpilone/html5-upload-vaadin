@@ -1,8 +1,7 @@
 package org.mpilone.vaadin.upload.fineuploader.shared;
 
-import org.mpilone.vaadin.upload.fineuploader.FineUploader;
-
 import com.vaadin.shared.ui.JavaScriptComponentState;
+import org.mpilone.vaadin.upload.fineuploader.FineUploader;
 
 /**
  * Shared state for the {@link FineUploader} component.
@@ -13,12 +12,6 @@ import com.vaadin.shared.ui.JavaScriptComponentState;
 public class FineUploaderState extends JavaScriptComponentState {
 
   public boolean rebuild;
-
-  /**
-   * The flag which indicates if the uploader should submit the selected upload
-   * if it isn't already uploading.
-   */
-  public boolean submitUpload = false;
 
   /**
    * Page URL to where the files will be uploaded to.

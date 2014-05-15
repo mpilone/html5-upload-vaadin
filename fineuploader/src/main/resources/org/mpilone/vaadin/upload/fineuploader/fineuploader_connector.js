@@ -102,11 +102,12 @@ org_mpilone_vaadin_upload_fineuploader_FineUploader = function() {
     browseBtn.disabledBtn.caption.innerHTML = BROWSE_BUTTON_CAPTION;
     container.appendChild(browseBtn.disabledBtn.root);
 
-    // If not immediate, add a separate submit button.
-    if (state.immediate && state.buttonCaption !== null) {
+    // If immediate, apply the button caption to the browse button.
+    if (state.immediate && state.buttonCaption) {
       browseBtn.caption.innerHTML = state.buttonCaption;
       browseBtn.disabledBtn.caption.innerHTML = state.buttonCaption;
     }
+    // If not immediate, add the file input box to populate with the selected file.
     else if (!state.immediate) {
       fileInput = document.createElement("input");
       fileInput.setAttribute("type", "text");
@@ -114,7 +115,9 @@ org_mpilone_vaadin_upload_fineuploader_FineUploader = function() {
       fileInput.className = "fineuploader-file v-textfield v-widget v-textfield-prompt v-readonly v-textfield-readonly";
       container.appendChild(fileInput);
 
-      if (state.buttonCaption !== null) {
+      // If there is a button caption, create a separate submit button 
+      // otherwise assume it will be submitted on the server side.
+      if (state.buttonCaption) {
         submitBtn = this._createPseudoVaadinButton();
         submitBtn.root.className = SUBMIT_BUTTON_CLASSNAME;
         submitBtn.caption.innerHTML = state.buttonCaption;
@@ -250,10 +253,17 @@ org_mpilone_vaadin_upload_fineuploader_FineUploader = function() {
       }
     }
 
-    // Check for upload start state change.
-    if (state.submitUpload && uploader.getUploads().length > 0
-            && uploader.getInProgress() === 0) {
-      console_log("Starting upload.");
+    
+  };
+
+  /**
+   * Submits the upload if there is a file selected.
+   * 
+   * @returns {undefined}
+   */
+  this.submitUpload = function() {
+    if (uploader.getUploads().length > 0 && uploader.getInProgress() === 0) {
+      console_log("Starting upload due to server side submit.");
       uploader.uploadStoredFiles();
     }
   };
@@ -283,4 +293,5 @@ org_mpilone_vaadin_upload_fineuploader_FineUploader = function() {
 
   // -----------------------
   // Init component
+  this.registerRpc("org.mpilone.vaadin.upload.fineuploader.shared.FineUploaderClientRpc", this);
 };

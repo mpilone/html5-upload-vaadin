@@ -1,8 +1,7 @@
 package org.mpilone.vaadin.upload.plupload.shared;
 
-import org.mpilone.vaadin.upload.plupload.Plupload;
-
 import com.vaadin.shared.ui.JavaScriptComponentState;
+import org.mpilone.vaadin.upload.plupload.Plupload;
 
 /**
  * Shared state for the {@link Plupload} component.
@@ -11,12 +10,6 @@ import com.vaadin.shared.ui.JavaScriptComponentState;
  */
 @SuppressWarnings("serial")
 public class PluploadState extends JavaScriptComponentState {
-
-  /**
-   * The flag which indicates if the uploader should submit the selected upload
-   * if it isn't already uploading.
-   */
-  public boolean submitUpload = false;
 
   /**
    * The flag which indicates if the uploader should be interrupted if currently

@@ -1,19 +1,17 @@
 package org.mpilone.vaadin.upload.plupload;
 
-import static org.mpilone.vaadin.upload.Streams.removePath;
-import static org.mpilone.vaadin.upload.Streams.tryClose;
-
-import java.io.*;
-
-import org.mpilone.vaadin.upload.*;
-import org.mpilone.vaadin.upload.plupload.shared.*;
-import org.slf4j.*;
-
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.server.*;
 import com.vaadin.server.communication.FileUploadHandler;
 import com.vaadin.ui.Upload;
 import com.vaadin.util.FileTypeResolver;
+import java.io.*;
+import org.mpilone.vaadin.upload.*;
+import org.mpilone.vaadin.upload.plupload.shared.*;
+import org.slf4j.*;
+
+import static org.mpilone.vaadin.upload.Streams.removePath;
+import static org.mpilone.vaadin.upload.Streams.tryClose;
 
 /**
  * <p>
@@ -38,7 +36,9 @@ public class Plupload extends AbstractHtml5Upload {
    */
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private final PluploadServerRpc rpc = new PluploadServerRpcImpl();
+  private final PluploadServerRpc serverRpc = new ServerRpcImpl();
+  private final PluploadClientRpc clientRpc;
+
   private StreamVariable streamVariable;
   private Runtime runtime;
  
@@ -67,8 +67,8 @@ public class Plupload extends AbstractHtml5Upload {
    * data
    */
   public Plupload(String caption, Upload.Receiver receiver) {
-    registerRpc(rpc);
-    setCaption(caption);
+    registerRpc(serverRpc);
+    clientRpc = getRpcProxy(PluploadClientRpc.class);
 
     // Add the Silverlight mime-type if it isn't already in the resolver.
     if (FileTypeResolver.DEFAULT_MIME_TYPE.equals(FileTypeResolver.getMIMEType(
@@ -81,6 +81,7 @@ public class Plupload extends AbstractHtml5Upload {
     setResource("silverlightUrl", new ClassResource(getClass(),
         "plupload/js/Moxie.xap"));
 
+    setCaption(caption);
     setRuntimes(Runtime.HTML5, Runtime.FLASH, Runtime.HTML4);
     setReceiver(receiver);
     setMaxFileSize(10 * 1024 * 1024);
@@ -220,7 +221,7 @@ public class Plupload extends AbstractHtml5Upload {
       throw new IllegalStateException("Uploading in progress.");
     }
 
-    getState().submitUpload = true;
+    clientRpc.submitUpload();
   }
 
   /**
@@ -260,7 +261,6 @@ public class Plupload extends AbstractHtml5Upload {
       uploadSession = new UploadSession();
     }
 
-    getState().submitUpload = false;
     getState().interruptUpload = false;
   }
 
@@ -279,8 +279,6 @@ public class Plupload extends AbstractHtml5Upload {
 
       uploadSession = null;
     }
-
-    getState().submitUpload = false;
   }
 
   /**
@@ -352,9 +350,9 @@ public class Plupload extends AbstractHtml5Upload {
   /**
    * The remote procedure call interface which allows calls from the client side
    * to the server. For the most part these methods map to the events generated
-   * by the Plupload_orig JavaScript component.
+   * by the Plupload JavaScript component.
    */
-  private class PluploadServerRpcImpl implements PluploadServerRpc {
+  private class ServerRpcImpl implements PluploadServerRpc {
 
     /**
      * Serialization ID.

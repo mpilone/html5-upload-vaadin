@@ -1,8 +1,7 @@
 package org.mpilone.vaadin;
 
-import org.mpilone.vaadin.upload.fineuploader.FineUploader;
-
 import com.vaadin.ui.*;
+import org.mpilone.vaadin.upload.fineuploader.FineUploader;
 
 /**
  * Demo for the FineUploader Vaadin component.
@@ -65,6 +64,20 @@ public class FineUploaderDemo extends AbstractUploadDemo {
     upload.setButtonCaption("Upload w/o Chunking");
     upload.setChunkSize(0);
     addExample("Immediate Submit with out Chunking", upload);
+
+    // Upload 7: Server initiated manual upload.
+    upload = buildUpload();
+    upload.setImmediate(false);
+    upload.setButtonCaption(null);
+
+    final FineUploader _upload7 = upload;
+    btn = new Button("Server Side Submit", new Button.ClickListener() {
+      @Override
+      public void buttonClick(Button.ClickEvent event) {
+        _upload7.submitUpload();
+      }
+    });
+    addExample("Server Initiated Manual Upload", upload, btn);
   }
 
   private FineUploader buildUpload() {

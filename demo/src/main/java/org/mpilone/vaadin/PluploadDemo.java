@@ -1,8 +1,7 @@
 package org.mpilone.vaadin;
 
-import org.mpilone.vaadin.upload.plupload.Plupload;
-
 import com.vaadin.ui.*;
+import org.mpilone.vaadin.upload.plupload.Plupload;
 
 /**
  * Demo for the Plupload Vaadin component.
@@ -90,7 +89,19 @@ public class PluploadDemo extends AbstractUploadDemo {
     upload.setMaxFileSize(1024 * 1024);
     addExample("Immediate Submit with Max 1 MiB", upload);
 
-    
+    // Upload 8: Server initiated manual upload.
+    upload = buildUpload();
+    upload.setImmediate(false);
+    upload.setButtonCaption(null);
+
+    final Plupload _upload8 = upload;
+    btn = new Button("Server Side Submit", new Button.ClickListener() {
+      @Override
+      public void buttonClick(Button.ClickEvent event) {
+        _upload8.submitUpload();
+      }
+    });
+    addExample("Server Initiated Manual Upload", upload, btn);
   }
 
   private Plupload buildUpload() {

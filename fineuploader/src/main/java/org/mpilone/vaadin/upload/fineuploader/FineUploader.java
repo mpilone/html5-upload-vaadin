@@ -1,19 +1,16 @@
 package org.mpilone.vaadin.upload.fineuploader;
 
-import static org.mpilone.vaadin.upload.Streams.tryClose;
-
-import java.io.*;
-
-import org.mpilone.vaadin.upload.*;
-import org.mpilone.vaadin.upload.Html5Receiver.RetryableOutputStream;
-import org.mpilone.vaadin.upload.fineuploader.shared.FineUploaderServerRpc;
-import org.mpilone.vaadin.upload.fineuploader.shared.FineUploaderState;
-import org.slf4j.*;
-
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.server.*;
 import com.vaadin.server.communication.FileUploadHandler;
 import com.vaadin.ui.*;
+import java.io.*;
+import org.mpilone.vaadin.upload.*;
+import org.mpilone.vaadin.upload.Html5Receiver.RetryableOutputStream;
+import org.mpilone.vaadin.upload.fineuploader.shared.*;
+import org.slf4j.*;
+
+import static org.mpilone.vaadin.upload.Streams.tryClose;
 
 /**
  * <p>
@@ -39,7 +36,9 @@ public class FineUploader extends AbstractHtml5Upload {
    */
   private final static Logger log = LoggerFactory.getLogger(FineUploader.class);
 
-  private final FineUploaderServerRpc rpc = new FineUploaderServerRpcImpl();
+  private final FineUploaderServerRpc serverRpc
+      = new ServerRpcImpl();
+  private final FineUploaderClientRpc clientRpc;
   private StreamVariable streamVariable;
   private UploadSession uploadSession;
 
@@ -65,7 +64,9 @@ public class FineUploader extends AbstractHtml5Upload {
    * data
    */
   public FineUploader(String caption, Upload.Receiver receiver) {
-    registerRpc(rpc);
+    registerRpc(serverRpc);
+    clientRpc = getRpcProxy(FineUploaderClientRpc.class);
+
     setCaption(caption);
     setReceiver(receiver);
     setMaxFileSize(10 * 1024 * 1024);
@@ -215,7 +216,7 @@ public class FineUploader extends AbstractHtml5Upload {
       throw new IllegalStateException("Uploading in progress.");
     }
 
-    getState().submitUpload = true;
+    clientRpc.submitUpload();
   }
 
   /**
@@ -254,8 +255,6 @@ public class FineUploader extends AbstractHtml5Upload {
     if (uploadSession == null) {
       uploadSession = new UploadSession();
     }
-
-    getState().submitUpload = false;
   }
 
   /**
@@ -273,8 +272,6 @@ public class FineUploader extends AbstractHtml5Upload {
 
       uploadSession = null;
     }
-
-    getState().submitUpload = false;
   }
 
   /**
@@ -296,7 +293,7 @@ public class FineUploader extends AbstractHtml5Upload {
    * to the server. For the most part these methods map to the events generated
    * by the FileUploader JavaScript component.
    */
-  private class FineUploaderServerRpcImpl implements FineUploaderServerRpc {
+  private class ServerRpcImpl implements FineUploaderServerRpc {
 
     /**
      * Serialization ID.
