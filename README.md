@@ -47,6 +47,9 @@ authors.
   features are not exposed, such as the upload queue.
 * Interrupting of HTML4 uploads with retries enabled may be slow as multiple 
   retries may need to abort before the entire upload is interrupted.
+* Proper DOM manipulation may not occur when used as a child under some Vaadin 
+  components such as TabSheet or Window. This is related to when the parent 
+  element is attached to the document.
 
 ## Example Usage
 
