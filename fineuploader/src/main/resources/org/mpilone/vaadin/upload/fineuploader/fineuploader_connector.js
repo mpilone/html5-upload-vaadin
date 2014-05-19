@@ -37,21 +37,21 @@ org_mpilone_vaadin_upload_fineuploader_FineUploader = function() {
    * @type @exp;document@call;createElement
    */
   var container;
-  
+
   /**
    * The div that acts as the browse for files button.
    * 
    * @type @exp;document@call;createElement
    */
   var browseBtn;
-  
+
   /**
    * The div that acts as the submit button when in manual mode.
    * 
    * @type @exp;document@call;createElement
    */
   var submitBtn;
-  
+
   /**
    * The input that displays the file name in manual mode.
    * 
@@ -208,18 +208,38 @@ org_mpilone_vaadin_upload_fineuploader_FineUploader = function() {
     rpcProxy.onInit("doing fine (" + connectorId + ")");
   };
 
-/**
- * Swaps the style.display property between the two divs.
- * 
- * @param {type} src div element
- * @param {type} dest div element
- * @returns {undefined}
- */
+  /**
+   * Swaps the style.display property between the two divs.
+   * 
+   * @param {type} src div element
+   * @param {type} dest div element
+   * @returns {undefined}
+   */
   this._swapDisplayStyle = function(src, dest) {
     var tmp = src.style.display;
-    
+
     src.style.display = dest.style.display;
     dest.style.display = tmp;
+  };
+
+  /**
+   * Called when the component is being unregistered (i.e. removed) from the UI. 
+   * Cancel an in-progress uploads and destroy the uploader.
+   * 
+   * @returns {undefined}
+   */
+  this.onUnregister = function() {
+    if (uploader) {
+      console_log("Cancelling and cleaning up uploader component.");
+
+      try {
+        uploader.cancelAll();
+      }
+      catch (ex) {
+        // no op
+      }
+      uploader = null;
+    }
   };
 
   /*
@@ -245,7 +265,7 @@ org_mpilone_vaadin_upload_fineuploader_FineUploader = function() {
 
     // Check for browse enabled and update the button visibility accordingly.
     if ((state.enabled && browseBtn.root.style.display === DISPLAY_NONE) ||
-      (!state.enabled && browseBtn.disabledBtn.root.style.display === DISPLAY_NONE)) {
+            (!state.enabled && browseBtn.disabledBtn.root.style.display === DISPLAY_NONE)) {
       this._swapDisplayStyle(browseBtn.root, browseBtn.disabledBtn.root);
 
       if (submitBtn !== null) {
@@ -253,7 +273,7 @@ org_mpilone_vaadin_upload_fineuploader_FineUploader = function() {
       }
     }
 
-    
+
   };
 
   /**

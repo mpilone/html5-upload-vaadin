@@ -42,21 +42,21 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
    * @type @exp;document@call;createElement
    */
   var container;
-  
+
   /**
    * The div that acts as the browse for files button.
    * 
    * @type @exp;document@call;createElement
    */
   var browseBtn;
-  
+
   /**
    * The div that acts as the submit button when in manual mode.
    * 
    * @type @exp;document@call;createElement
    */
   var submitBtn;
-  
+
   /**
    * The input that displays the file name in manual mode.
    * 
@@ -81,14 +81,14 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
     }
   }
 
-/**
+  /**
    * Builds the container divs and the buttons in the div.
    * 
    * @param {type} state
    * @returns {undefined}
    */
   this._buildButtons = function(state) {
-     // Container
+    // Container
     container = document.createElement("div");
     container.setAttribute("id", "plupload_container_" + connectorId);
     container.className = "plupload";
@@ -189,15 +189,17 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
 
       if (immediate && uploader.state === plupload.STOPPED) {
         console_log("Starting immediately.");
-        window.setTimeout(function() { uploader.start(); }, 200);
+        window.setTimeout(function() {
+          uploader.start();
+        }, 200);
       }
     });
 
     uploader.bind('ChunkUploaded', function(up, file, chunkResponse) {
       var response = JSON.parse(chunkResponse.response);
-      
+
       console_log("Chunk complete. Response: " + chunkResponse.response);
-      
+
       if (response.preventRetry) {
         console_log("Preventing retries after chunk response.");
         uploader.stop();
@@ -229,7 +231,7 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
     });
 
     uploader.bind('PostInit', function(up) {
-      console_log("PostInit: " + up.runtime);
+      //console_log("PostInit: " + up.runtime);
     });
 
     uploader.bind('UploadProgress', function(up, file) {
@@ -252,6 +254,28 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
     uploader.init();
   };
 
+  /**
+   * Called when the component is being unregistered (i.e. removed) from the UI. 
+   * Cancel an in-progress uploads and destroy the uploader.
+   * 
+   * @returns {undefined}
+   */
+  this.onUnregister = function() {
+    if (uploader) {
+      console_log("Stopping and cleaning up uploader component.");
+
+      try {
+        uploader.stop();
+        uploader.destroy();
+      }
+      catch (ex) {
+        // no op
+      }
+
+      uploader = null;
+    }
+  };
+
   /*
    * Called when the state on the server side changes. If the state 
    * changes require a rebuild of the upload component, it will be 
@@ -263,31 +287,31 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
     var state = this.getState();
 
     console_log("State change!");
-    
+
     if (state.rebuild) {
-       console_log("Building uploader for connector " + connectorId);
-       
-       // Cleanup the current uploader if there is one.
-       if (uploader) {
-         uploader.destroy();
-       }
-       uploader = null;
-       element.innerHTML = "";
-       
-       try {
+      console_log("Building uploader for connector " + connectorId);
+
+      // Cleanup the current uploader if there is one.
+      if (uploader) {
+        uploader.destroy();
+      }
+      uploader = null;
+      element.innerHTML = "";
+
+      try {
         // Build the new uploader.
         this._buildButtons(state);
         this._buildUploader(state);
-        
+
         immediate = state.immediate;
       }
-       catch (ex) {
+      catch (ex) {
         // TODO: This needs to be cleaned up!
         console_log(ex);
         alert(ex);
       }
     }
-    
+
     // Apply state changes that don't require a rebuild.
     if (uploader.getOption("chunk_size") !== state.chunkSize) {
       uploader.setOption("chunk_size", state.chunkSize);
@@ -304,7 +328,7 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
       uploader.disableBrowse(false);
       browseBtn.root.className = BROWSE_BUTTON_CLASSNAME;
       browseBtn.enabled = true;
-      
+
       if (submitBtn) {
         submitBtn.root.className = SUBMIT_BUTTON_CLASSNAME;
       }
@@ -313,7 +337,7 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
       uploader.disableBrowse(true);
       browseBtn.root.className = BROWSE_BUTTON_CLASSNAME + " v-disabled";
       browseBtn.enabled = false;
-      
+
       if (submitBtn) {
         submitBtn.root.className = SUBMIT_BUTTON_CLASSNAME + " v-disabled";
       }
@@ -332,7 +356,7 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
    * @returns {undefined}
    */
   this.submitUpload = function() {
-    if (uploader.state === plupload.STOPPED 
+    if (uploader.state === plupload.STOPPED
             && uploader.files && uploader.files.length > 0) {
       console_log("Starting upload due to server side submit.");
       uploader.start();
@@ -360,7 +384,7 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
       caption: btnCaption
     };
   };
-  
+
   // -----------------------
   // Init component
   this.registerRpc("org.mpilone.vaadin.upload.plupload.shared.PluploadClientRpc", this);
