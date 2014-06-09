@@ -1,17 +1,19 @@
 package org.mpilone.vaadin.upload.plupload;
 
+import static org.mpilone.vaadin.upload.Streams.removePath;
+import static org.mpilone.vaadin.upload.Streams.tryClose;
+
+import java.io.*;
+
+import org.mpilone.vaadin.upload.*;
+import org.mpilone.vaadin.upload.plupload.shared.*;
+import org.slf4j.*;
+
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.server.*;
 import com.vaadin.server.communication.FileUploadHandler;
 import com.vaadin.ui.Upload;
 import com.vaadin.util.FileTypeResolver;
-import java.io.*;
-import org.mpilone.vaadin.upload.*;
-import org.mpilone.vaadin.upload.plupload.shared.*;
-import org.slf4j.*;
-
-import static org.mpilone.vaadin.upload.Streams.removePath;
-import static org.mpilone.vaadin.upload.Streams.tryClose;
 
 /**
  * <p>
@@ -393,6 +395,19 @@ public class Plupload extends AbstractHtml5Upload {
 
     @Override
     public void onFileUploaded(String id, String name, int contentLength) {
+
+      // We delay the success event until we get the uploaded event from
+      // the client. Plupload depends a lot on the DOM element being attached 
+      // to the document when the chunks complete so we don't to announce a 
+      // successful upload until we know that Plupload is done on the client 
+      // side and the server side component might be detached.
+      if (uploadSession != null && uploadSession.succeededEventPending) {
+        SucceededEvent evt = new SucceededEvent(Plupload.this,
+            uploadSession.filename, uploadSession.mimeType,
+            uploadSession.bytesRead);
+        fireUploadSuccess(evt);
+      }
+
       // End the upload if there was one in progress.
       endUpload();
     }
@@ -562,11 +577,10 @@ public class Plupload extends AbstractHtml5Upload {
         org.mpilone.vaadin.upload.Streams.tryClose(
             uploadSession.receiverOutstream);
 
-        SucceededEvent evt = new SucceededEvent(Plupload.this,
-            uploadSession.filename, uploadSession.mimeType,
-            uploadSession.bytesRead);
-        fireUploadSuccess(evt);
-        endUpload();
+        // Delay the firing of the succeeded event because Plupload
+        // wants to stay attached to the DOM. Wait for Plupload to tell us
+        // it is done.
+        uploadSession.succeededEventPending = true;
       }
     }
 
@@ -617,6 +631,7 @@ public class Plupload extends AbstractHtml5Upload {
     String mimeType;
     volatile long bytesRead;
     volatile boolean interrupted;
+    boolean succeededEventPending;
   }
 
   /**

@@ -6,10 +6,10 @@
 
   <groupId>org.mpilone</groupId>
   <artifactId>html5-upload-vaadin-parent</artifactId>
-  <version>1.4.0</version>
+  <version>1.4.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>HTML5 Upload for Vaadin</name>
+  <name>HTML5 Upload for Vaadin Parent</name>
   <url>http://github.com/mpilone/html5-upload-vaadin</url>
   <description>HTML5 upload component implementations for Vaadin including a 
     core support library and support for Plupload and Fine Uploader. The 
