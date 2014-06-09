@@ -288,7 +288,7 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
 
     console_log("State change!");
 
-    if (state.rebuild) {
+    if (!uploader || state.rebuild) {
       console_log("Building uploader for connector " + connectorId);
 
       // Cleanup the current uploader if there is one.
@@ -342,12 +342,6 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
         submitBtn.root.className = SUBMIT_BUTTON_CLASSNAME + " v-disabled";
       }
     }
-
-    // Check for upload stop state change.
-    if (state.interruptUpload && uploader.state === plupload.STARTED) {
-      console_log("Aborting upload.");
-      uploader.stop();
-    }
   };
 
   /**
@@ -360,6 +354,19 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
             && uploader.files && uploader.files.length > 0) {
       console_log("Starting upload due to server side submit.");
       uploader.start();
+    }
+  };
+  
+  /**
+   * Interrupts the upload if there is a file in progress.
+   * 
+   * @returns {undefined}
+   */
+  this.interruptUpload = function() {
+    // Check for upload stop state change.
+    if (uploader.state === plupload.STARTED) {
+      console_log("Interrupting upload.");
+      uploader.stop();
     }
   };
 

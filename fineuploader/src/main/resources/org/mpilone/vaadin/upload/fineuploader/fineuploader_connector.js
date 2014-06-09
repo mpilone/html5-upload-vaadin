@@ -254,7 +254,7 @@ org_mpilone_vaadin_upload_fineuploader_FineUploader = function() {
 
     console_log("State change!");
 
-    if (state.rebuild) {
+    if (!uploader || state.rebuild) {
       element.innerHTML = "";
       uploader = null;
 

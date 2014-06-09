@@ -120,6 +120,11 @@ public class Plupload extends AbstractHtml5Upload {
     super.detach();
   }
 
+  @Override
+  public void setVisible(boolean visible) {
+    super.setVisible(visible); //To change body of generated methods, choose Tools | Templates.
+  }
+
   /**
    * Returns the stream variable that will receive the data events and content.
    *
@@ -238,12 +243,13 @@ public class Plupload extends AbstractHtml5Upload {
 
   /**
    * Interrupts the upload currently being received. The interruption will be
-   * done by the receiving tread so this method will return immediately and the
+   * done by the receiving thread so this method will return immediately and the
    * actual interrupt will happen a bit later.
    */
   public void interruptUpload() {
     if (uploadSession != null) {
       uploadSession.interrupted = true;
+      clientRpc.interruptUpload();
     }
   }
 
@@ -263,7 +269,7 @@ public class Plupload extends AbstractHtml5Upload {
       uploadSession = new UploadSession();
     }
 
-    getState().interruptUpload = false;
+//    getState().interruptUpload = false;
   }
 
   /**

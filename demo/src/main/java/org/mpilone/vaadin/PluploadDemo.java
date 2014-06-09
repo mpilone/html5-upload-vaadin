@@ -1,6 +1,5 @@
 package org.mpilone.vaadin;
 
-import org.mpilone.vaadin.upload.AbstractHtml5Upload;
 import org.mpilone.vaadin.upload.plupload.Plupload;
 
 import com.vaadin.ui.*;
@@ -104,19 +103,6 @@ public class PluploadDemo extends AbstractUploadDemo {
       }
     });
     addExample("Server Initiated Manual Upload", upload, btn);
-
-    final Plupload removeOnFinish = buildUpload();
-    removeOnFinish.setImmediate(true);
-    removeOnFinish.setButtonCaption(null);
-    removeOnFinish.setRuntimes(Plupload.Runtime.FLASH);
-    removeOnFinish.addFinishedListener(
-        new AbstractHtml5Upload.FinishedListener() {
-          @Override
-          public void uploadFinished(AbstractHtml5Upload.FinishedEvent evt) {
-            removeComponent(removeOnFinish);
-          }
-        });
-    addComponent(removeOnFinish);
   }
 
   private Plupload buildUpload() {

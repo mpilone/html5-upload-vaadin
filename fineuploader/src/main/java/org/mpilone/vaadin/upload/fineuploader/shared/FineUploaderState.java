@@ -1,7 +1,8 @@
 package org.mpilone.vaadin.upload.fineuploader.shared;
 
-import com.vaadin.shared.ui.JavaScriptComponentState;
 import org.mpilone.vaadin.upload.fineuploader.FineUploader;
+
+import com.vaadin.shared.ui.JavaScriptComponentState;
 
 /**
  * Shared state for the {@link FineUploader} component.
@@ -11,6 +12,10 @@ import org.mpilone.vaadin.upload.fineuploader.FineUploader;
 @SuppressWarnings("serial")
 public class FineUploaderState extends JavaScriptComponentState {
 
+  /**
+   * The flag which indicates if a value changed in the component that will
+   * require a complete rebuild of the client side component.
+   */
   public boolean rebuild;
 
   /**

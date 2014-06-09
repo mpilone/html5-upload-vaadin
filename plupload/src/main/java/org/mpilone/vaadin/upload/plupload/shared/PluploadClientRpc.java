@@ -13,4 +13,6 @@ public interface PluploadClientRpc extends ClientRpc {
 
   void submitUpload();
 
+  void interruptUpload();
+
 }
