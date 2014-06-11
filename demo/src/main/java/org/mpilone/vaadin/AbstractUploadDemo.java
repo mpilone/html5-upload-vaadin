@@ -87,10 +87,17 @@ public abstract class AbstractUploadDemo extends HorizontalLayout implements
       msg = format(msg, args);
     }
 
-    String value = logTxt.getValue();
-    value = format("%s\n[%s] %s", value, new Date(), msg);
-    logTxt.setValue(value);
-    logTxt.setCursorPosition(value.length() - 1);
+    final String _msg = msg;
+
+    getUI().access(new Runnable() {
+      @Override
+      public void run() {
+        String value = logTxt.getValue();
+        value = format("%s\n[%s] %s", value, new Date(), _msg);
+        logTxt.setValue(value);
+        logTxt.setCursorPosition(value.length() - 1);
+      }
+    });
   }
 
 }

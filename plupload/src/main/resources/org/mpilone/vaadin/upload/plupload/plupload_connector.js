@@ -367,6 +367,10 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
     if (uploader.state === plupload.STARTED) {
       console_log("Interrupting upload.");
       uploader.stop();
+      
+      // We have to generate a call to finalize the upload on the server side
+      // because a manual stop of Plupload won't generate any event.
+      rpcProxy.onError("", "", "", -1, null, "interrupted server side");
     }
   };
 

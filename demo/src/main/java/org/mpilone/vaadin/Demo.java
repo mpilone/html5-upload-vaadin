@@ -24,7 +24,7 @@ public class Demo extends UI {
   @Override
   protected void init(VaadinRequest request) {
 
-    //setPollInterval(3000);
+    setPollInterval(120000);
     setWidth(FULL_WIDTH);
 
     contentLayout = new VerticalLayout();
@@ -36,7 +36,7 @@ public class Demo extends UI {
     ComboBox cmb = new ComboBox("Select Demo");
     cmb.addItem("Plupload");
     cmb.addItem("Fine Uploader");
-    cmb.setValue("Fine Uploader");
+    cmb.setValue("Plupload");
     cmb.setNullSelectionAllowed(false);
     cmb.setImmediate(true);
     cmb.addValueChangeListener(new Property.ValueChangeListener() {

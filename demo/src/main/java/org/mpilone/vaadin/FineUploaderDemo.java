@@ -1,6 +1,7 @@
 package org.mpilone.vaadin;
 
 import com.vaadin.ui.*;
+
 import org.mpilone.vaadin.upload.fineuploader.FineUploader;
 
 /**
@@ -25,7 +26,7 @@ public class FineUploaderDemo extends AbstractUploadDemo {
     // Upload 3: Immediate submit forced slow.
     upload = buildUpload();
     upload.setButtonCaption("Slow it Down");
-    upload.setReceiver(new SlowHtml5DemoReceiver(this));
+    upload.setReceiver(new SlowDemoReceiver(this));
     upload.setImmediate(true);
     final FineUploader _upload4 = upload;
 
@@ -40,7 +41,7 @@ public class FineUploaderDemo extends AbstractUploadDemo {
     // Upload 4: Manual submit forced slow.
     upload = buildUpload();
     upload.setButtonCaption("Slow and Manual");
-    upload.setReceiver(new SlowHtml5DemoReceiver(this));
+    upload.setReceiver(new SlowDemoReceiver(this));
     final FineUploader _upload6 = upload;
 
     btn = new Button("Interrupt", new Button.ClickListener() {
@@ -78,6 +79,20 @@ public class FineUploaderDemo extends AbstractUploadDemo {
       }
     });
     addExample("Server Initiated Manual Upload", upload, btn);
+
+    // Upload 8: Random failure submit.
+    upload = buildUpload();
+    upload.setButtonCaption("Randomly Fail");
+    upload.setImmediate(true);
+    upload.setReceiver(new RandomFailureDemoReceiver(this));
+    addExample("Immediate Submit and Random Failure", upload);
+
+    // Upload 9: Random perminant failure submit.
+    upload = buildUpload();
+    upload.setButtonCaption("Randomly Fail");
+    upload.setImmediate(true);
+    upload.setReceiver(new RandomFailureDemoReceiver(this, true));
+    addExample("Immediate Submit and Random Perminant Failure", upload);
   }
 
   private FineUploader buildUpload() {

@@ -1,16 +1,18 @@
 package org.mpilone.vaadin.upload.fineuploader;
 
-import com.vaadin.annotations.JavaScript;
-import com.vaadin.server.*;
-import com.vaadin.server.communication.FileUploadHandler;
-import com.vaadin.ui.*;
+import static org.mpilone.vaadin.upload.Streams.tryClose;
+
 import java.io.*;
+
 import org.mpilone.vaadin.upload.*;
 import org.mpilone.vaadin.upload.Html5Receiver.RetryableOutputStream;
 import org.mpilone.vaadin.upload.fineuploader.shared.*;
 import org.slf4j.*;
 
-import static org.mpilone.vaadin.upload.Streams.tryClose;
+import com.vaadin.annotations.JavaScript;
+import com.vaadin.server.*;
+import com.vaadin.server.communication.FileUploadHandler;
+import com.vaadin.ui.*;
 
 /**
  * <p>

@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.mpilone</groupId>
     <artifactId>html5-upload-vaadin-parent</artifactId>
-    <version>1.4.2</version>
+    <version>1.4.3-SNAPSHOT</version>
   </parent>
 
   <artifactId>html5-upload-vaadin-core</artifactId>

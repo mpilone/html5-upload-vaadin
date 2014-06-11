@@ -13,7 +13,6 @@ import org.apache.commons.fileupload.*;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import com.vaadin.server.*;
-import com.vaadin.server.StreamVariable.StreamingErrorEvent;
 import com.vaadin.server.communication.*;
 import com.vaadin.ui.UI;
 
@@ -413,7 +412,8 @@ public class Html5FileUploadHandler implements RequestHandler {
 
       response = event.getResponse();
     }
-    catch (FileUploadHandler.UploadInterruptedException e) {
+    catch (Exception e) {
+//    catch (FileUploadHandler.UploadInterruptedException  e) {
       // Download interrupted by application code. Relay the error to the
       // stream variable and use the custom response if set.
       //
@@ -432,23 +432,23 @@ public class Html5FileUploadHandler implements RequestHandler {
 
       response = event.getResponse();
     }
-    catch (Exception e) {
-      // Download interrupted by an unexpected error. Replay the error to
-      // the stream variable and raise an exception.
-      Streams.tryClose(out);
-      final StreamingErrorEvent event = new StreamingErrorEventImpl(context, e);
-
-      runInLock(session, new Runnable() {
-        @Override
-        public void run() {
-          streamVariable.streamingFailed(event);
-        }
-      });
-
-      // throw exception for terminal to be handled (to be passed to
-      // terminalErrorHandler)
-      throw new UploadException(e);
-    }
+//    catch (Exception e) {
+//      // Download interrupted by an unexpected error. Replay the error to
+//      // the stream variable and raise an exception.
+//      Streams.tryClose(out);
+//      final StreamingErrorEvent event = new StreamingErrorEventImpl(context, e);
+//
+//      runInLock(session, new Runnable() {
+//        @Override
+//        public void run() {
+//          streamVariable.streamingFailed(event);
+//        }
+//      });
+//
+//      // throw exception for terminal to be handled (to be passed to
+//      // terminalErrorHandler)
+//      throw new UploadException(e);
+//    }
 
     return response;
   }

@@ -10,7 +10,7 @@ import com.vaadin.ui.Upload;
  */
 class DemoReceiver implements Upload.Receiver {
   protected CountingDigestOutputStream outstream;
-  private final UploadLogger log;
+  protected final UploadLogger log;
 
   public DemoReceiver(UploadLogger log) {
     this.log = log;

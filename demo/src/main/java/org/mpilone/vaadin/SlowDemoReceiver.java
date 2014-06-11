@@ -10,9 +10,9 @@ import org.mpilone.vaadin.upload.Html5Receiver;
  *
  * @author mpilone
  */
-public class SlowHtml5DemoReceiver extends DemoReceiver implements Html5Receiver {
+public class SlowDemoReceiver extends DemoReceiver implements Html5Receiver {
 
-  public SlowHtml5DemoReceiver(UploadLogger log) {
+  public SlowDemoReceiver(UploadLogger log) {
     super(log);
   }
 
@@ -29,7 +29,7 @@ public class SlowHtml5DemoReceiver extends DemoReceiver implements Html5Receiver
   private class SlowOutputStream extends Html5Receiver.RetryableOutputStream {
 
     private int countSinceLastSleep = 0;
-    private OutputStream delegate;
+    private final OutputStream delegate;
 
     public SlowOutputStream(OutputStream delegate) {
       this.delegate = delegate;

@@ -39,7 +39,7 @@ public class PluploadDemo extends AbstractUploadDemo {
     // Upload 4: Immediate submit forced slow.
     upload = buildUpload();
     upload.setButtonCaption("Slow it Down");
-    upload.setReceiver(new SlowHtml5DemoReceiver(this));
+    upload.setReceiver(new SlowDemoReceiver(this));
     upload.setImmediate(true);
     final Plupload _upload4 = upload;
 
@@ -55,7 +55,7 @@ public class PluploadDemo extends AbstractUploadDemo {
     upload = buildUpload();
     upload.setRuntimes(Plupload.Runtime.HTML4);
     upload.setButtonCaption("Slow and Old");
-    upload.setReceiver(new SlowHtml5DemoReceiver(this));
+    upload.setReceiver(new SlowDemoReceiver(this));
     upload.setImmediate(true);
     final Plupload _upload5 = upload;
 
@@ -72,7 +72,7 @@ public class PluploadDemo extends AbstractUploadDemo {
     upload = buildUpload();
     upload.setRuntimes(Plupload.Runtime.HTML4);
     upload.setButtonCaption("Slow and Manual");
-    upload.setReceiver(new SlowHtml5DemoReceiver(this));
+    upload.setReceiver(new SlowDemoReceiver(this));
     final Plupload _upload6 = upload;
 
     btn = new Button("Interrupt", new Button.ClickListener() {
@@ -103,6 +103,22 @@ public class PluploadDemo extends AbstractUploadDemo {
       }
     });
     addExample("Server Initiated Manual Upload", upload, btn);
+
+    // Upload 9: Random failure submit.
+    upload = buildUpload();
+    upload.setRuntimes(Plupload.Runtime.HTML5);
+    upload.setButtonCaption("Randomly Fail");
+    upload.setImmediate(true);
+    upload.setReceiver(new RandomFailureDemoReceiver(this));
+    addExample("Immediate Submit and Random Failure", upload);
+
+    // Upload 10: Random perminant failure submit.
+    upload = buildUpload();
+    upload.setRuntimes(Plupload.Runtime.HTML5);
+    upload.setButtonCaption("Randomly Fail");
+    upload.setImmediate(true);
+    upload.setReceiver(new RandomFailureDemoReceiver(this, true));
+    addExample("Immediate Submit and Random Perminant Failure", upload);
   }
 
   private Plupload buildUpload() {
