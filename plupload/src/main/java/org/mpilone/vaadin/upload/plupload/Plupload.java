@@ -170,7 +170,8 @@ public class Plupload extends AbstractHtml5Upload {
   }
 
   /**
-   * Sets the maximum number of retries if an upload fails.
+   * Sets the maximum number of retries if an upload fails. Plupload resets the
+   * retry count per chunk, not for the entire upload.
    *
    * @param maxRetries the number of retries
    */
@@ -420,15 +421,7 @@ public class Plupload extends AbstractHtml5Upload {
 
     @Override
     public void onFileUploaded(String id, String name, int contentLength) {
-      // We delay the success event until we get the uploaded event from
-      // the client. Plupload depends a lot on the DOM element being attached 
-      // to the document when the chunks complete so we don't to announce a 
-      // successful upload until we know that Plupload is done on the client 
-      // side and the server side component might be detached.
-      if (uploadSession != null) {
-
-      }
-
+      
       // End the upload if there was one in progress.
       endUpload();
     }
@@ -598,9 +591,11 @@ public class Plupload extends AbstractHtml5Upload {
         org.mpilone.vaadin.upload.Streams.tryClose(
             uploadSession.receiverOutstream);
 
-        // Delay the firing of the succeeded event because Plupload
-        // wants to stay attached to the DOM. Wait for Plupload to tell us
-        // it is done.
+        // We delay the success event until we get the uploaded event from
+        // the client. Plupload depends a lot on the DOM element being attached
+        // to the document when the chunks complete so we don't to announce a
+        // successful upload until we know that Plupload is done on the client
+        // side and the server side component might be detached.
         uploadSession.succeededEventPending = true;
       }
     }

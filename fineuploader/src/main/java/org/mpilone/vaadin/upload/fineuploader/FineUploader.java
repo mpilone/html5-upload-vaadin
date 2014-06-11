@@ -157,7 +157,9 @@ public class FineUploader extends AbstractHtml5Upload {
   }
 
   /**
-   * Sets the maximum number of retries if an upload fails.
+   * Sets the maximum number of retries if an upload fails. FineUploader
+   * maintains a single retry count for the entire upload and does not reset it
+   * per chunk.
    *
    * @param maxRetries the number of retries
    */
@@ -272,6 +274,25 @@ public class FineUploader extends AbstractHtml5Upload {
         tryClose(uploadSession.receiverOutstream);
       }
 
+      if (uploadSession.succeededEventPending) {
+        fireUploadSuccess(new SucceededEvent(FineUploader.this,
+            uploadSession.filename, uploadSession.mimeType,
+            uploadSession.bytesRead));
+      }
+      else if (uploadSession.exception instanceof NoInputStreamException) {
+        fireNoInputStream(uploadSession.filename,
+            uploadSession.mimeType, uploadSession.contentLength);
+      }
+      else if (uploadSession.exception instanceof NoOutputStreamException) {
+        fireNoOutputStream(uploadSession.filename,
+            uploadSession.mimeType, uploadSession.contentLength);
+      }
+      else {
+        fireUploadInterrupted(new FailedEvent(FineUploader.this,
+            uploadSession.filename, uploadSession.mimeType,
+            uploadSession.contentLength, uploadSession.exception));
+      }
+
       uploadSession = null;
     }
   }
@@ -305,21 +326,20 @@ public class FineUploader extends AbstractHtml5Upload {
     @Override
     public void onError(Integer id, String name, String errorReason) {
 
+      log.info("Error on upload. id: {}, name: {}, reason: {}", id, name,
+          errorReason);
+
       if (errorReason != null && errorReason.contains("too large")) {
         fireFileSizeExceeded(
             new FileSizeExceededEvent(FineUploader.this, name, null, -1));
       }
 
-      log.info("Error on upload. id: {}, name: {}, reason: {}", id, name,
-          errorReason);
-
       endUpload();
-      
     }
 
     @Override
     public void onComplete(int id, String name) {
-      // Ignore. Might be removed in the future.
+      endUpload();
     }
 
     @Override
@@ -469,11 +489,8 @@ public class FineUploader extends AbstractHtml5Upload {
       if (chunkIndex + 1 == chunkCount) {
         Streams.tryClose(uploadSession.receiverOutstream);
 
-        SucceededEvent evt = new SucceededEvent(FineUploader.this,
-            uploadSession.filename, uploadSession.mimeType,
-            uploadSession.bytesRead);
-        fireUploadSuccess(evt);
-        endUpload();
+        // Delay firing the event until the client tells us it is done.
+        uploadSession.succeededEventPending = true;
       }
     }
 
@@ -485,25 +502,24 @@ public class FineUploader extends AbstractHtml5Upload {
       Exception exception = event.getException();
       String responseContent = "{\"success\": false}";
 
-      if (exception instanceof NoInputStreamException) {
-        fireNoInputStream(uploadSession.filename,
-            uploadSession.mimeType, uploadSession.contentLength);
-      }
-      else if (exception instanceof NoOutputStreamException) {
-        fireNoOutputStream(uploadSession.filename,
-            uploadSession.mimeType, uploadSession.contentLength);
-      }
-      else if (exception instanceof FileUploadHandler.UploadInterruptedException) {
-        responseContent =
-            "{\"success\": false, \"error\": \"interrupted\", "
+      if (exception instanceof FileUploadHandler.UploadInterruptedException) {
+        // We respond and wait for the
+        // interrupted state change to cancel the upload on the client side.
+        responseContent = "{\"success\": false, \"error\": \"interrupted\", "
             + "\"preventRetry\": true}";
-
-        fireUploadInterrupted(new FailedEvent(FineUploader.this,
-            uploadSession.filename, uploadSession.mimeType,
-            uploadSession.contentLength, exception));
       }
 
-      endUpload();
+      uploadSession.exception = exception;
+
+      // Because we can't prevent retries on an HTML4 or non-chunked upload,
+      // we'll delay ending the upload until we get the RPC call from the
+      // client.
+      html5Event.setResponse(new Html5StreamVariable.UploadResponse(200,
+          "text/plain", responseContent));
+
+      String msg = exception == null ? "unknown" : exception.getMessage();
+      log.info("Streaming to receiver failed. The upload will be retried if "
+          + "retries are configured and not exhausted. Exception: {}", msg);
 
       html5Event.setResponse(new Html5StreamVariable.UploadResponse(200,
           "text/plain", responseContent));
@@ -521,6 +537,8 @@ public class FineUploader extends AbstractHtml5Upload {
     String mimeType;
     volatile long bytesRead;
     volatile boolean interrupted;
+    private boolean succeededEventPending;
+    private Exception exception;
   }
 
 }

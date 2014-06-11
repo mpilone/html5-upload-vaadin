@@ -163,7 +163,9 @@ org_mpilone_vaadin_upload_fineuploader_FineUploader = function() {
         },
         onError: function(id, name, errorReason, xhr) {
           console_log("onError: " + name);
-          rpcProxy.onError(id, name, errorReason);
+          if (uploader.getInProgress() === 0) {
+            rpcProxy.onError(id, name, errorReason);
+          }
         },
         onProgress: function(id, name, uploadBytes, totalBytes) {
           console_log("onProgress: " + name);

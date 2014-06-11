@@ -36,13 +36,14 @@ public class RandomFailureDemoReceiver extends DemoReceiver implements
   }
 
   /**
-   * A stream that sleeps periodically to slow down writes.
+   * A stream that randomly throws an error while committing a completed chunk.
    */
   private class RandomFailureOutputStream extends Html5Receiver.RetryableOutputStream {
 
     private final OutputStream delegate;
     private ByteArrayOutputStream bufOutstream;
     private boolean inFailureState;
+    private int failCount = 0;
 
     public RandomFailureOutputStream(OutputStream delegate) {
       this.delegate = delegate;
@@ -63,16 +64,6 @@ public class RandomFailureDemoReceiver extends DemoReceiver implements
       bufOutstream.write(b);
     }
 
-//    private void maybeFail() throws IOException {
-//
-//      if (countSinceLastFailure > (256 * 1024) && Math.random() > 0.98) {
-//        countSinceLastFailure = 0;
-//        log.log("Simulating an IO error in the receiver.");
-//
-//        throw new IOException("Simulating an IO error.");
-//      }
-//    }
-
     @Override
     public void chunkStart(int chunkIndex, int chunkCount) throws IOException {
       log.log("Chunk start: index %d, count %d", chunkIndex, chunkCount);
@@ -88,12 +79,12 @@ public class RandomFailureDemoReceiver extends DemoReceiver implements
     @Override
     public void chunkEnd(int chunkIndex, int chunkCount) throws IOException {
 
-      if (Math.random() > 0.9 || inFailureState) {
-        log.log("Simulating an IO error in the receiver.");
-
+      if (inFailureState || Math.random() > 0.9) {
+        failCount++;
         inFailureState = perminantFailureEnabled;
 
-        throw new IOException("Simulating an IO error.");
+        log.log("Simulating an IO error number %s in the receiver.", failCount);
+        throw new IOException("Simulating an IO error number " + failCount + ".");
       }
 
       log.log("Chunk end: index %d, count %d", chunkIndex, chunkCount);

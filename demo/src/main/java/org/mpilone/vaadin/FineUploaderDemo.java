@@ -1,8 +1,8 @@
 package org.mpilone.vaadin;
 
-import com.vaadin.ui.*;
-
 import org.mpilone.vaadin.upload.fineuploader.FineUploader;
+
+import com.vaadin.ui.*;
 
 /**
  * Demo for the FineUploader Vaadin component.
@@ -84,6 +84,7 @@ public class FineUploaderDemo extends AbstractUploadDemo {
     upload = buildUpload();
     upload.setButtonCaption("Randomly Fail");
     upload.setImmediate(true);
+    upload.setMaxRetries(20);
     upload.setReceiver(new RandomFailureDemoReceiver(this));
     addExample("Immediate Submit and Random Failure", upload);
 
@@ -100,7 +101,7 @@ public class FineUploaderDemo extends AbstractUploadDemo {
     final FineUploader upload = new FineUploader();
     upload.setChunkSize(256 * 1024);
     upload.setMaxFileSize(500 * 1024 * 1024);
-    upload.setMaxRetries(2);
+    upload.setMaxRetries(5);
     upload.setButtonCaption("Upload File");
     upload.setReceiver(new DemoReceiver(this));
 
