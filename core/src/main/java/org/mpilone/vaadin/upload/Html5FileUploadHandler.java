@@ -16,7 +16,6 @@ import com.vaadin.server.*;
 import com.vaadin.server.communication.*;
 import com.vaadin.ui.UI;
 
-
 /**
  * A custom file upload request handler that generates
  * {@link Html5StreamVariable} events to allow the stream variable lower level
@@ -87,17 +86,18 @@ public class Html5FileUploadHandler implements RequestHandler {
       @Override
       public void run() {
         UI uI = session.getUIById(Integer.parseInt(uiId));
-        UI.setCurrent(uI);
+        if (uI != null) {
+          UI.setCurrent(uI);
 
-        StreamVariable streamVariable = uI.getConnectorTracker().
-            getStreamVariable(
-                connectorId, variableName);
-        String secKey = uI.getConnectorTracker().getSeckey(streamVariable);
+          StreamVariable streamVariable = uI.getConnectorTracker().
+              getStreamVariable(connectorId, variableName);
+          String secKey = uI.getConnectorTracker().getSeckey(streamVariable);
 
-        if (secKey.equals(parts[3])) {
-          context.streamVariable = streamVariable;
-          context.source = session.getCommunicationManager().getConnector(uI,
-              connectorId);
+          if (secKey.equals(parts[3])) {
+            context.streamVariable = streamVariable;
+            context.source = session.getCommunicationManager().getConnector(uI,
+                connectorId);
+          }
         }
       }
     });
@@ -109,7 +109,7 @@ public class Html5FileUploadHandler implements RequestHandler {
 
     String contentLengthHeader = request.
         getHeader(FileUploadBase.CONTENT_LENGTH);
-    
+
     context.contentLength = contentLengthHeader != null ? Integer.parseInt(
         contentLengthHeader) : -1;
     context.dataContentLength = context.contentLength;
