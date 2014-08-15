@@ -93,7 +93,7 @@ public class Html5FileUploadHandler implements RequestHandler {
               getStreamVariable(connectorId, variableName);
           String secKey = uI.getConnectorTracker().getSeckey(streamVariable);
 
-          if (secKey.equals(parts[3])) {
+          if (secKey != null && secKey.equals(parts[3])) {
             context.streamVariable = streamVariable;
             context.source = session.getCommunicationManager().getConnector(uI,
                 connectorId);
@@ -103,7 +103,11 @@ public class Html5FileUploadHandler implements RequestHandler {
     });
 
     if (context.streamVariable == null || context.source == null) {
-      // TODO: rethink error handling here.
+      // TODO: Rethink error handling here. This will most likely occur if
+      // the component has been detached on the server side but the client
+      // side is sending another request. We just ignore the request and
+      // assume that the the client side will get the detach at the end of
+      // this call.
       return true;
     }
 
