@@ -182,9 +182,18 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
     });
 
     uploader.bind('FilesAdded', function(up, files) {
-      console_log("Files added: " + files[0].name);
+      
+      // We only want the last file selected so we remove any other files 
+      // already in the queue.
+      var numFiles = files.length;
+      var file = files[numFiles - 1];
+      for (var i = 0; i < numFiles - 1; i++) {
+        up.removeFile(files[i]);
+      }
+      
+      console_log("Files added: " + file.name);
       if (fileInput) {
-        fileInput.value = files[0].name;
+        fileInput.value = file.name;
       }
 
       if (immediate && uploader.state === plupload.STOPPED) {
