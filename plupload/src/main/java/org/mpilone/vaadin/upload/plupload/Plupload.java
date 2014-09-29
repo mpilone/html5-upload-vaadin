@@ -615,7 +615,12 @@ public class Plupload extends AbstractHtml5Upload {
             + "\"preventRetry\": true}";
       }
 
-      uploadSession.exception = exception;
+      // Make sure we still have a valid session before trying to store the
+      // exception. It is possible that we already terminated the upload by
+      // the time we get this error.
+      if (uploadSession != null) {
+        uploadSession.exception = exception;
+      }
 
       // Because we can't prevent retries on an HTML4 or non-chunked upload,
       // we'll delay ending the upload until we get the RPC call from the
@@ -641,7 +646,6 @@ public class Plupload extends AbstractHtml5Upload {
     volatile long bytesRead;
     volatile boolean interrupted;
     boolean succeededEventPending;
-    private boolean interruptedEventPending;
     private Exception exception;
   }
 
