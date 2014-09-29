@@ -6,7 +6,7 @@
 
   <groupId>org.mpilone</groupId>
   <artifactId>html5-upload-vaadin-parent</artifactId>
-  <version>1.4.5</version>
+  <version>1.4.6</version>
   <packaging>pom</packaging>
 
   <name>HTML5 Upload for Vaadin Parent</name>
