@@ -1,9 +1,7 @@
-
 package org.mpilone.vaadin.upload;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-
 
 /**
  * Utility methods for working with streams.
@@ -11,6 +9,7 @@ import java.nio.ByteBuffer;
  * @author mpilone
  */
 public class Streams {
+
   /**
    * The byte size of the buffer to use when reading from an input stream and
    * writing to an output stream (i.e. stream data copying).
@@ -89,19 +88,21 @@ public class Streams {
     }
   }
 
-   /**
-    * Attempts to close the given stream, ignoring IO exceptions.
-    *
-    * @param closeable the stream to be closed
-    */
+  /**
+   * Attempts to close the given stream, ignoring IO exceptions. If the stream
+   * is null, this method does nothing.
+   *
+   * @param closeable the stream to be closed
+   */
   public static void tryClose(Closeable closeable) {
-     try {
-       closeable.close();
-     }
-     catch (IOException ex) {
-       // Ignore
-     }
-   }
+    if (closeable != null) {
+      try {
+        closeable.close();
+      }
+      catch (IOException ex) {
+        // Ignore
+      }
+    }
+  }
 
- 
 }
