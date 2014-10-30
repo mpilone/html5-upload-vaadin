@@ -19,7 +19,7 @@
   </description>
   
   <properties>
-    <jetty.version>9.0.7.v20131107</jetty.version>
+    <jetty.version>9.2.3.v20140905</jetty.version>
   </properties>
 
   <dependencies>

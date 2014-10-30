@@ -25,7 +25,7 @@ import com.vaadin.ui.*;
  * @author mpilone
  */
 @JavaScript({"fineuploader_connector.js",
-  "fineuploader/fineuploader-4.4.0.min.js"})
+  "fineuploader/fineuploader-5.0.8.min.js"})
 public class FineUploader extends AbstractHtml5Upload {
 
   /**
