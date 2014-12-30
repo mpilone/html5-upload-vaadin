@@ -128,9 +128,9 @@ public class DefaultHtml5Receiver implements
    */
   private static class DiskRetryableOutputStream extends RetryableOutputStream {
 
-    protected OutputStream tempOutstream;
     protected final OutputStream receiverOutstream;
     private File tempFile;
+    protected RandomAccessFile tempFileStream;
 
     public DiskRetryableOutputStream(OutputStream receiverOutstream) {
       this.receiverOutstream = receiverOutstream;
@@ -138,25 +138,30 @@ public class DefaultHtml5Receiver implements
 
     @Override
     public void chunkStart(int chunkIndex, int chunkCount) throws IOException {
-      cleanUp();
 
-      tempFile = File.createTempFile("upload_disk_retryable", null);
-      tempFile.deleteOnExit();
+      if (tempFileStream == null) {
+//        System.out.println(
+//            "** Creating new temporary file for the retryable output stream.");
+        tempFile = File.createTempFile("upload_disk_retryable", null);
+        tempFile.deleteOnExit();
 
-      tempOutstream = new FileOutputStream(tempFile);
+        tempFileStream = new RandomAccessFile(tempFile, "rw");
+      }
+
+      // Truncate the file to prepare for the next chunk.
+      tempFileStream.setLength(0);
     }
 
     @Override
     public void chunkEnd(int chunkIndex, int chunkCount) throws IOException {
-      tempOutstream.close();
-      tempOutstream = null;
+      // Move back to the head of the file.
+      tempFileStream.seek(0);
 
-      try (FileInputStream tempInstream = new FileInputStream(tempFile)) {
-        Streams.copy(tempInstream, receiverOutstream);
-        receiverOutstream.flush();
-      }
+      // Copy all the data from the temporary file/buffer to the output stream.
+      Streams.copy(tempFileStream, receiverOutstream);
 
-      cleanUp();
+      // Truncate the file for the next chunk.
+      tempFileStream.setLength(0);
     }
 
     /**
@@ -167,12 +172,14 @@ public class DefaultHtml5Receiver implements
      */
     private void cleanUp() throws IOException {
 
-      if (tempOutstream != null) {
-        tempOutstream.close();
-        tempOutstream = null;
+      if (tempFileStream != null) {
+        tempFileStream.close();
+        tempFileStream = null;
       }
 
       if (tempFile != null) {
+//        System.out.println(
+//            "** Deleting temporary file for the retryable output stream.");
         tempFile.delete();
         tempFile = null;
       }
@@ -188,17 +195,17 @@ public class DefaultHtml5Receiver implements
 
     @Override
     public void write(int b) throws IOException {
-      tempOutstream.write(b);
+      tempFileStream.write(b);
     }
 
     @Override
     public void write(byte[] b) throws IOException {
-      tempOutstream.write(b);
+      tempFileStream.write(b);
     }
 
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
-      tempOutstream.write(b, off, len);
+      tempFileStream.write(b, off, len);
     }
   }
 

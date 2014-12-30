@@ -122,11 +122,11 @@ public class Html5FileUploadHandler implements RequestHandler {
     context.response = response;
     context.servletRequest = asServletRequest(request);
     context.session = session;
-    context.params = new HashMap<>();
+    context.params = new HashMap<>(10);
 
     // Copy over the URL parameters into our own map so they can be provided
     // to the stream variable implementation.
-    context.addParams(request.getParameterMap());
+//    context.addParams(request.getParameterMap());
 
     handleRequest(context);
 
@@ -513,15 +513,33 @@ public class Html5FileUploadHandler implements RequestHandler {
     public Map<String, Collection<String>> params;
 
     /**
-     * Adds all the parameters defined in the map to the {@link #params} field.
+     * Returns the value of the given parameter by first searching the request
+     * parameters and then falling back to any parameters directly added to this
+     * context (normally from the the multipart body.
      *
-     * @param paramMap the map of parameters to add
+     * @param name the name of the parameter to get
+     *
+     * @return the parameter values or null if the parameter isn't found
      */
-    public void addParams(Map<String, String[]> paramMap) {
-      for (Map.Entry<String, String[]> entry : paramMap.entrySet()) {
-        addParams(entry.getKey(), entry.getValue());
+    public Collection<String> getParams(String name) {
+      if (request.getParameterMap().containsKey(name)) {
+        return Arrays.asList(request.getParameterMap().get(name));
+      }
+      else {
+        return params.get(name);
       }
     }
+
+//    /**
+//     * Adds all the parameters defined in the map to the {@link #params} field.
+//     *
+//     * @param paramMap the map of parameters to add
+//     */
+//    public void addParams(Map<String, String[]> paramMap) {
+//      for (Map.Entry<String, String[]> entry : paramMap.entrySet()) {
+//        addParams(entry.getKey(), entry.getValue());
+//      }
+//    }
 
     /**
      * Adds all the values for the given parameter to the {@link #params} field.
@@ -543,7 +561,7 @@ public class Html5FileUploadHandler implements RequestHandler {
      */
     public void addParam(String name, String value) {
       if (!params.containsKey(name)) {
-        params.put(name, new ArrayList<String>());
+        params.put(name, new ArrayList<String>(2));
       }
       params.get(name).add(value);
     }
@@ -703,7 +721,7 @@ public class Html5FileUploadHandler implements RequestHandler {
 
     @Override
     public Collection<String> getParameterValues(String name) {
-      return context.params.get(name);
+      return context.getParams(name);
     }
 
     @Override

@@ -105,4 +105,28 @@ public class Streams {
     }
   }
 
+  /**
+   * Copies all the data from the given input file stream to the output stream.
+   *
+   * @param fileStream the input file stream to read from
+   * @param outstream the output stream to write to
+   *
+   * @throws IOException if an error occurs reading or writing
+   */
+  static void copy(RandomAccessFile fileStream, OutputStream outstream) throws
+      IOException {
+
+    byte[] buf = new byte[IO_BUFFER_SIZE];
+
+    long remaining = fileStream.length();
+    while (remaining > 0) {
+      int len = (int) (remaining < buf.length ? remaining : buf.length);
+
+      fileStream.readFully(buf, 0, len);
+      remaining -= len;
+
+      outstream.write(buf, 0, len);
+    }
+  }
+
 }
