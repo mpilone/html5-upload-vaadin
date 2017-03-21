@@ -8,7 +8,7 @@ import java.util.Date;
 
 import org.mpilone.vaadin.upload.AbstractHtml5Upload;
 
-import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.shared.ui.ContentMode;
 import com.vaadin.ui.*;
 
 /**

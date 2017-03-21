@@ -102,11 +102,11 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
     container.appendChild(browseBtn.root);
 
     // If immediate, apply the button caption to the browse button.
-    if (state.immediate && state.buttonCaption) {
+    if (state.immediateMode && state.buttonCaption) {
       browseBtn.caption.innerHTML = state.buttonCaption;
     }
     // If not immediate, add the file input box to populate with the selected file.
-    else if (!state.immediate) {
+    else if (!state.immediateMode) {
       fileInput = document.createElement("input");
       fileInput.setAttribute("type", "text");
       fileInput.setAttribute("readonly", "true");
@@ -312,7 +312,7 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
         this._buildButtons(state);
         this._buildUploader(state);
 
-        immediate = state.immediate;
+        immediate = state.immediateMode;
       }
       catch (ex) {
         // TODO: This needs to be cleaned up!

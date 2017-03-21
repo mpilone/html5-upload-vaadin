@@ -53,4 +53,9 @@ public class FineUploaderState extends JavaScriptComponentState {
    */
   public String buttonCaption;
 
+  /**
+   * A flag which indicates if the upload should be submitted immediately or
+   * initiated on the server side.
+   */
+  public boolean immediateMode;
 }

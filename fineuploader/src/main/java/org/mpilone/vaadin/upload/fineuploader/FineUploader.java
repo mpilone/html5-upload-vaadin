@@ -2,17 +2,21 @@ package org.mpilone.vaadin.upload.fineuploader;
 
 import static org.mpilone.vaadin.upload.Streams.tryClose;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
 
 import org.mpilone.vaadin.upload.*;
 import org.mpilone.vaadin.upload.Html5Receiver.RetryableOutputStream;
-import org.mpilone.vaadin.upload.fineuploader.shared.*;
-import org.slf4j.*;
+import org.mpilone.vaadin.upload.fineuploader.shared.FineUploaderClientRpc;
+import org.mpilone.vaadin.upload.fineuploader.shared.FineUploaderServerRpc;
+import org.mpilone.vaadin.upload.fineuploader.shared.FineUploaderState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.server.*;
 import com.vaadin.server.communication.FileUploadHandler;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Upload;
 
 /**
  * <p>
@@ -125,7 +129,7 @@ public class FineUploader extends AbstractHtml5Upload {
    * @return the caption of the submit button
    */
   public String getButtonCaption() {
-    return getState().buttonCaption;
+    return getState(false).buttonCaption;
   }
 
   /**
@@ -140,11 +144,27 @@ public class FineUploader extends AbstractHtml5Upload {
     getState().rebuild = true;
   }
 
-  @Override
-  public void setImmediate(boolean immediate) {
-    super.setImmediate(immediate);
-
+  /**
+   * Sets the immediate mode flag. A value of true will cause the upload to
+   * begin as soon as the user selects a file.
+   * 
+   * @param immediate
+   *          true for immediate, false to require manual submission using
+   *          {@link #submitUpload()}
+   */
+  public void setImmediateMode(boolean immediate) {
+    getState().immediateMode = immediate;
     getState().rebuild = true;
+  }
+
+  /**
+   * Returns true if the uploader is configured to submit the upload immediately
+   * after file selection.
+   * 
+   * @return true if the upload will submit immediately after file selection
+   */
+  public boolean isImmediateMode() {
+    return getState(false).immediateMode;
   }
 
   /**
@@ -153,7 +173,7 @@ public class FineUploader extends AbstractHtml5Upload {
    * @return the number of retries
    */
   public long getMaxRetries() {
-    return getState().maxRetries;
+    return getState(false).maxRetries;
   }
 
   /**
@@ -309,6 +329,11 @@ public class FineUploader extends AbstractHtml5Upload {
   @Override
   protected FineUploaderState getState() {
     return (FineUploaderState) super.getState();
+  }
+
+  @Override
+  protected FineUploaderState getState(boolean markAsDirty) {
+    return (FineUploaderState) super.getState(markAsDirty);
   }
 
   /**

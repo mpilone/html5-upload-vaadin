@@ -3,8 +3,8 @@ package org.mpilone.vaadin;
 
 import static org.mpilone.vaadin.StyleConstants.FULL_WIDTH;
 
-import com.vaadin.annotations.*;
-import com.vaadin.data.Property;
+import com.vaadin.annotations.Push;
+import com.vaadin.annotations.Theme;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.shared.communication.PushMode;
 import com.vaadin.ui.*;
@@ -14,7 +14,7 @@ import com.vaadin.ui.*;
  *
  * @author mpilone
  */
-@Theme("runo")
+@Theme("valo")
 @Push(value = PushMode.DISABLED)
 public class Demo extends UI {
 
@@ -34,16 +34,11 @@ public class Demo extends UI {
     setContent(contentLayout);
 
     ComboBox cmb = new ComboBox("Select Demo");
-    cmb.addItem("Plupload");
-    cmb.addItem("Fine Uploader");
+    cmb.setItems("Plupload", "Fine Uploader");
     cmb.setValue("Plupload");
-    cmb.setNullSelectionAllowed(false);
-    cmb.setImmediate(true);
-    cmb.addValueChangeListener(new Property.ValueChangeListener() {
-      @Override
-      public void valueChange(Property.ValueChangeEvent event) {
-        onDemoChange((String) event.getProperty().getValue());
-      }
+    cmb.setEmptySelectionAllowed(false);
+    cmb.addSelectionListener(evt -> {
+      onDemoChange((String) evt.getFirstSelectedItem().get());
     });
     contentLayout.addComponent(cmb);
 

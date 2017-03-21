@@ -103,12 +103,12 @@ org_mpilone_vaadin_upload_fineuploader_FineUploader = function() {
     container.appendChild(browseBtn.disabledBtn.root);
 
     // If immediate, apply the button caption to the browse button.
-    if (state.immediate && state.buttonCaption) {
+    if (state.immediateMode && state.buttonCaption) {
       browseBtn.caption.innerHTML = state.buttonCaption;
       browseBtn.disabledBtn.caption.innerHTML = state.buttonCaption;
     }
     // If not immediate, add the file input box to populate with the selected file.
-    else if (!state.immediate) {
+    else if (!state.immediateMode) {
       fileInput = document.createElement("input");
       fileInput.setAttribute("type", "text");
       fileInput.setAttribute("readonly", "true");
@@ -148,7 +148,7 @@ org_mpilone_vaadin_upload_fineuploader_FineUploader = function() {
 
     // Create the uploader.
     uploader = new qq.FineUploaderBasic({
-      autoUpload: state.immediate,
+      autoUpload: state.immediateMode,
       button: browseBtn.root,
       callbacks: {
         onUpload: function(id, name) {

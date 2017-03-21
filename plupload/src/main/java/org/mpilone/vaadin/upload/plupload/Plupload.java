@@ -3,11 +3,15 @@ package org.mpilone.vaadin.upload.plupload;
 import static org.mpilone.vaadin.upload.Streams.removePath;
 import static org.mpilone.vaadin.upload.Streams.tryClose;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
 
 import org.mpilone.vaadin.upload.*;
-import org.mpilone.vaadin.upload.plupload.shared.*;
-import org.slf4j.*;
+import org.mpilone.vaadin.upload.plupload.shared.PluploadClientRpc;
+import org.mpilone.vaadin.upload.plupload.shared.PluploadServerRpc;
+import org.mpilone.vaadin.upload.plupload.shared.PluploadState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.server.*;
@@ -207,7 +211,7 @@ public class Plupload extends AbstractHtml5Upload {
    * @return the size of each data chunk
    */
   public int getChunkSize() {
-    return getState().chunkSize;
+    return getState(false).chunkSize;
   }
 
   /**
@@ -217,6 +221,28 @@ public class Plupload extends AbstractHtml5Upload {
    */
   public void setMaxFileSize(long size) {
     getState().maxFileSize = size;
+  }
+
+  /**
+   * Sets the immediate mode flag. A value of true will cause the upload to
+   * begin as soon as the user selects a file.
+   * 
+   * @param immediate
+   *          true for immediate, false to require manual submission using
+   *          {@link #submitUpload()}
+   */
+  public void setImmediateMode(boolean immediate) {
+    getState().immediateMode = immediate;
+  }
+
+  /**
+   * Returns true if the uploader is configured to submit the upload immediately
+   * after file selection.
+   * 
+   * @return true if the upload will submit immediately after file selection
+   */
+  public boolean isImmediateMode() {
+    return getState(false).immediateMode;
   }
 
   /**
@@ -373,6 +399,11 @@ public class Plupload extends AbstractHtml5Upload {
   @Override
   protected PluploadState getState() {
     return (PluploadState) super.getState();
+  }
+
+  @Override
+  protected PluploadState getState(boolean markAsDirty) {
+    return (PluploadState) super.getState(markAsDirty);
   }
 
   /**

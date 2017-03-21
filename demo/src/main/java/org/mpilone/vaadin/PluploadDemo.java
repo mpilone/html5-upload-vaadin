@@ -2,7 +2,7 @@ package org.mpilone.vaadin;
 
 import org.mpilone.vaadin.upload.plupload.Plupload;
 
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
 
 /**
  * Demo for the Plupload Vaadin component.
@@ -19,14 +19,14 @@ public class PluploadDemo extends AbstractUploadDemo {
 
     // Upload 2: Immediate submit.
     upload = buildUpload();
-    upload.setImmediate(true);
+    upload.setImmediateMode(true);
     upload.setButtonCaption("Upload Now");
     addExample("Immediate Submit", upload);
 
     // Upload 3: Manual submit using flash.
     upload = buildUpload();
     upload.setRuntimes(Plupload.Runtime.FLASH);
-    upload.setImmediate(true);
+    upload.setImmediateMode(true);
     upload.setButtonCaption("Flash is Fun");
     addExample("Immediate Submit using Flash", upload);
 
@@ -40,7 +40,7 @@ public class PluploadDemo extends AbstractUploadDemo {
     upload = buildUpload();
     upload.setButtonCaption("Slow it Down");
     upload.setReceiver(new SlowDemoReceiver(this));
-    upload.setImmediate(true);
+    upload.setImmediateMode(true);
     final Plupload _upload4 = upload;
 
     Button btn = new Button("Interrupt", new Button.ClickListener() {
@@ -56,7 +56,7 @@ public class PluploadDemo extends AbstractUploadDemo {
     upload.setRuntimes(Plupload.Runtime.HTML4);
     upload.setButtonCaption("Slow and Old");
     upload.setReceiver(new SlowDemoReceiver(this));
-    upload.setImmediate(true);
+    upload.setImmediateMode(true);
     final Plupload _upload5 = upload;
 
     btn = new Button("Interrupt", new Button.ClickListener() {
@@ -65,7 +65,6 @@ public class PluploadDemo extends AbstractUploadDemo {
         _upload5.interruptUpload();
       }
     });
-    btn.setImmediate(true);
     addExample("Immediate Submit Forced Slow using HTML4", upload, btn);
 
     // Upload 6: Manual submit HTML4 forced slow.
@@ -85,14 +84,14 @@ public class PluploadDemo extends AbstractUploadDemo {
 
     // Upload 7: Immediate submit with max size 1 MiB.
     upload = buildUpload();
-    upload.setImmediate(true);
+    upload.setImmediateMode(true);
     upload.setButtonCaption("Upload w/Max");
     upload.setMaxFileSize(1024 * 1024);
     addExample("Immediate Submit with Max 1 MiB", upload);
 
     // Upload 8: Server initiated manual upload.
     upload = buildUpload();
-    upload.setImmediate(false);
+    upload.setImmediateMode(false);
     upload.setButtonCaption(null);
 
     final Plupload _upload8 = upload;
@@ -108,7 +107,7 @@ public class PluploadDemo extends AbstractUploadDemo {
     upload = buildUpload();
     upload.setRuntimes(Plupload.Runtime.HTML5);
     upload.setButtonCaption("Randomly Fail");
-    upload.setImmediate(true);
+    upload.setImmediateMode(true);
     upload.setReceiver(new RandomFailureDemoReceiver(this));
     addExample("Immediate Submit and Random Failure", upload);
 
@@ -116,7 +115,7 @@ public class PluploadDemo extends AbstractUploadDemo {
     upload = buildUpload();
     upload.setRuntimes(Plupload.Runtime.HTML5);
     upload.setButtonCaption("Randomly Fail");
-    upload.setImmediate(true);
+    upload.setImmediateMode(true);
     upload.setReceiver(new RandomFailureDemoReceiver(this, true));
     addExample("Immediate Submit and Random Perminant Failure", upload);
   }

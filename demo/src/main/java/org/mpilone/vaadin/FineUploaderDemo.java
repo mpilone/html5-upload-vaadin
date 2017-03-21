@@ -2,7 +2,7 @@ package org.mpilone.vaadin;
 
 import org.mpilone.vaadin.upload.fineuploader.FineUploader;
 
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
 
 /**
  * Demo for the FineUploader Vaadin component.
@@ -19,7 +19,7 @@ public class FineUploaderDemo extends AbstractUploadDemo {
 
     // Upload 2: Immediate submit.
     upload = buildUpload();
-    upload.setImmediate(true);
+    upload.setImmediateMode(true);
     upload.setButtonCaption("Upload Now");
     addExample("Immediate Submit", upload);
 
@@ -27,7 +27,7 @@ public class FineUploaderDemo extends AbstractUploadDemo {
     upload = buildUpload();
     upload.setButtonCaption("Slow it Down");
     upload.setReceiver(new SlowDemoReceiver(this));
-    upload.setImmediate(true);
+    upload.setImmediateMode(true);
     final FineUploader _upload4 = upload;
 
     Button btn = new Button("Interrupt", new Button.ClickListener() {
@@ -54,21 +54,21 @@ public class FineUploaderDemo extends AbstractUploadDemo {
 
     // Upload 5: Immediate submit with max size 1 MiB.
     upload = buildUpload();
-    upload.setImmediate(true);
+    upload.setImmediateMode(true);
     upload.setButtonCaption("Upload w/Max");
     upload.setMaxFileSize(1024 * 1024);
     addExample("Immediate Submit with Max 1 MiB", upload);
 
     // Upload 6: Immediate submit with no chunking.
     upload = buildUpload();
-    upload.setImmediate(true);
+    upload.setImmediateMode(true);
     upload.setButtonCaption("Upload w/o Chunking");
     upload.setChunkSize(0);
     addExample("Immediate Submit with out Chunking", upload);
 
     // Upload 7: Server initiated manual upload.
     upload = buildUpload();
-    upload.setImmediate(false);
+    upload.setImmediateMode(false);
     upload.setButtonCaption(null);
 
     final FineUploader _upload7 = upload;
@@ -83,7 +83,7 @@ public class FineUploaderDemo extends AbstractUploadDemo {
     // Upload 8: Random failure submit.
     upload = buildUpload();
     upload.setButtonCaption("Randomly Fail");
-    upload.setImmediate(true);
+    upload.setImmediateMode(true);
     upload.setMaxRetries(20);
     upload.setReceiver(new RandomFailureDemoReceiver(this));
     addExample("Immediate Submit and Random Failure", upload);
@@ -91,7 +91,7 @@ public class FineUploaderDemo extends AbstractUploadDemo {
     // Upload 9: Random perminant failure submit.
     upload = buildUpload();
     upload.setButtonCaption("Randomly Fail");
-    upload.setImmediate(true);
+    upload.setImmediateMode(true);
     upload.setReceiver(new RandomFailureDemoReceiver(this, true));
     addExample("Immediate Submit and Random Perminant Failure", upload);
   }
