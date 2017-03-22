@@ -333,7 +333,14 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
     }
 
     // Check for browse enabled and update the button visibility accordingly.
-    if (state.enabled && !browseBtn.enabled) {
+    // Vaadin will not send default values and because of the way JS
+    // components work default values will not appear in the state.
+    var stateEnabled = true;
+    if (state.hasOwnProperty['enabled']) {
+    	stateEnabled = state.enabled;
+    }
+    
+    if (stateEnabled && !browseBtn.enabled) {
       uploader.disableBrowse(false);
       browseBtn.root.className = BROWSE_BUTTON_CLASSNAME;
       browseBtn.enabled = true;
@@ -342,7 +349,7 @@ org_mpilone_vaadin_upload_plupload_Plupload = function() {
         submitBtn.root.className = SUBMIT_BUTTON_CLASSNAME;
       }
     }
-    else if (!state.enabled && browseBtn.enabled) {
+    else if (!stateEnabled && browseBtn.enabled) {
       uploader.disableBrowse(true);
       browseBtn.root.className = BROWSE_BUTTON_CLASSNAME + " v-disabled";
       browseBtn.enabled = false;
